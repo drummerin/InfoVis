@@ -77,12 +77,17 @@
     var cells = svg.append("svg:g")
         .attr("id", "cells");
 
+    // Group for the arcs
+    var arcs = svg.append("g")
+        .attr("class","arcs");
+
+
     var g = svg.append("g");
 
 
-    d3.select("input[type=checkbox]").on("change", function() {
+    /*d3.select("input[type=checkbox]").on("change", function() {
         cells.classed("voronoi", this.checked);
-    });
+    });*/
 
 
     d3.json("countries.geo.json", function(collection) {
@@ -92,6 +97,19 @@
             .enter().append("svg:path")
             .attr("d", path)
             .on("click", clicked);
+        collection.features.forEach(function(coords) {
+            //console.log(coords.geometry.coordinates);
+            // function per country
+        });
+
+        // Create a path for each source/target pair.
+        arcs.selectAll("path")
+            .data(arcdata)
+            .enter()
+            .append("path")
+            .attr('d', function(d) {
+                return lngLatToArc(d, 'sourceLocation', 'targetLocation', 15); // A bend of 5 looks nice and subtle, but this will depend on the length of your arcs and the visual look your visualization requires. Higher number equals less bend.
+            });
     });
 
 
@@ -118,11 +136,23 @@
 
     function clicked(d) {
         // ... add click functionality!
-        d3.select(this).classed("selected", true)
-            .style("fill", "red");
+
+
+        var selection = d3.select(this).style("fill", "black");
+        selection.classed("selected", !selection.classed("selected"));
+
+        if (selection.classed("selected")==false) {
+            selection.style("fill", "LightGray");
+            console.log("WHITE");
+        }
         console.log("clicking?");
-        console.log(d);
+
+        var centerPoint = getCenter(d);
+
+        console.log(centerPoint);
+
     }
+
 
 
     // ----------------------------- DATA (still airport)-----------------------------------------
@@ -132,10 +162,6 @@
             countByAirport = {},
             locationByAirport = {},
             positions = [];
-
-        var arc = d3.geo.greatArc()
-            .source(function(d) { return locationByAirport[d.source]; })
-            .target(function(d) { return locationByAirport[d.target]; });
 
         flights.forEach(function(flight) {
             var origin = flight.origin,
@@ -154,27 +180,10 @@
                     var location = [+airport.longitude, +airport.latitude];
                     locationByAirport[airport.iata] = location;
                     positions.push(projection(location));
+                    console.log("loc of airport: " + location);
                     return true;
                 }
             });
-
-            // Compute the Voronoi diagram of airports' projected positions.
-            var polygons = d3.geom.voronoi(positions);
-
-            var g = cells.selectAll("g")
-                .data(airports)
-                .enter().append("svg:path");
-
-            g.append("svg:path")
-                .attr("class", "cell")
-                .attr("d", function(d, i) { return "M" + polygons[i].join("L") + "Z"; })
-                .on("mouseover", function(d, i) { d3.select("h2 span").text(d.name); });
-
-            g.selectAll("path.arc")
-                .data(function(d) { return linksByOrigin[d.iata] || []; })
-                .enter().append("svg:path")
-                .attr("class", "arc")
-                .attr("d", function(d) { return path(arc(d)); });
 
             circles.selectAll("circle")
                 .data(airports)
@@ -185,6 +194,90 @@
                 .sort(function(a, b) { return countByAirport[b.iata] - countByAirport[a.iata]; });
         });
     });
+
+
+    // ----------------------------- Center of Country -----------------------------------------
+
+    function getCenter(polygon) {
+        if ('geometry' in polygon) polygon = polygon.geometry
+        if (!Array.isArray(polygon)) polygon = polygon.coordinates[0]
+
+        var minx = miny = 1000
+            ,   maxx = maxy = -1000
+        for (var i = 0; i < polygon.length; i++) {
+            var point = polygon[i]
+            var x = point[0]
+            var y = point[1]
+
+            if (x < minx) minx = x
+            else if (x > maxx) maxx = x
+            if (y < miny) miny = y
+            else if (y > maxy) maxy = y
+        }
+
+        return {
+            type: 'Point',
+            coordinates: [
+                minx + ((maxx - minx) / 2),
+                miny + ((maxy - miny) / 2)
+            ]
+        }
+    }
+
+    // ----------------------------- Center of Country -----------------------------------------
+
+    var arcdata = [
+        {
+            sourceLocation: [-99.5606025, 41.068178502813595],
+            targetLocation: [-106.503961875, 33.051502817366334]
+        },
+        {
+            sourceLocation: [-99.5606025, 81.068178502813595],
+            targetLocation: [-150.27544625, 34.29490081496779]
+        },
+        {
+            sourceLocation: [-99.5606025, 41.068178502813595],
+            targetLocation: [-92.793024375, 64.837711658059135]
+        }
+    ]
+
+
+    // This function takes an object, the key names where it will find an array of lng/lat pairs, e.g. `[-74, 40]`
+    // And a bend parameter for how much bend you want in your arcs, the higher the number, the less bend.
+    function lngLatToArc(d, sourceName, targetName, bend){
+        // If no bend is supplied, then do the plain square root
+        bend = bend || 1;
+        // `d[sourceName]` and `d[targetname]` are arrays of `[lng, lat]`
+        // Note, people often put these in lat then lng, but mathematically we want x then y which is `lng,lat`
+
+        var sourceLngLat = d[sourceName],
+            targetLngLat = d[targetName];
+
+        if (targetLngLat && sourceLngLat) {
+            var sourceXY = projection( sourceLngLat ),
+                targetXY = projection( targetLngLat );
+
+            // Uncomment this for testing, useful to see if you have any null lng/lat values
+            // if (!targetXY) console.log(d, targetLngLat, targetXY)
+            var sourceX = sourceXY[0],
+                sourceY = sourceXY[1];
+
+            var targetX = targetXY[0],
+                targetY = targetXY[1];
+
+            var dx = targetX - sourceX,
+                dy = targetY - sourceY,
+                dr = Math.sqrt(dx * dx + dy * dy)*bend;
+
+            // To avoid a whirlpool effect, make the bend direction consistent regardless of whether the source is east or west of the target
+            var west_of_source = (targetX - sourceX) < 0;
+            if (west_of_source) return "M" + targetX + "," + targetY + "A" + dr + "," + dr + " 0 0,1 " + sourceX + "," + sourceY;
+            return "M" + sourceX + "," + sourceY + "A" + dr + "," + dr + " 0 0,1 " + targetX + "," + targetY;
+
+        } else {
+            return "M0,0,l0,0z";
+        }
+    }
 
 </script>
 </body>
