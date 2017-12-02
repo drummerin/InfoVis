@@ -90,7 +90,7 @@
     });*/
 
 
-    d3.json("countries.geo.json", function(collection) {
+    d3.json("data/countries.geo.json", function(collection) {
         states.selectAll("path")
             .attr("id", "states")
             .data(collection.features)
@@ -157,7 +157,7 @@
 
     // ----------------------------- DATA (still airport)-----------------------------------------
 
-    d3.csv("flights-airport.csv", function(flights) {
+    d3.csv("/data/flights-airport.csv", function(flights) {
         var linksByOrigin = {},
             countByAirport = {},
             locationByAirport = {},
@@ -172,7 +172,7 @@
             countByAirport[destination] = (countByAirport[destination] || 0) + 1;
         });
 
-        d3.csv("airports.csv", function(airports) {
+        d3.csv("/data/airports.csv", function(airports) {
 
             // Only consider airports with at least one flight.
             airports = airports.filter(function(airport) {
