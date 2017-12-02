@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<head>
+    <style>
+
+        #states path {
+            fill: #ccc;
+            stroke: #fff;
+        }
+
+        path.arc {
+            pointer-events: none;
+            fill: none;
+            stroke: #000;
+            display: none;
+        }
+
+        path.cell {
+            fill: none;
+            pointer-events: all;
+        }
+
+        circle {
+            fill: steelblue;
+            fill-opacity: .8;
+            stroke: #fff;
+        }
+
+        #cells.voronoi path.cell {
+            stroke: brown;
+        }
+
+        #cells g:hover path.arc {
+            display: inherit;
+        }
+    </style>
+</head>
+<body>
+
+<div id="mapi" style="border:1px dotted blue; width: 200px; height: 475px; position: absolute; right: 10px;"></div>
+<!--div id="container1" style="border:1px dotted blue; width: 700px; height: 475px; position: relative;"></div-->
+<script src="/components/d3/d3.min.js"></script>
+<script src="https://d3js.org/d3-array.v1.min.js"></script>
+<script src="https://d3js.org/d3-geo.v1.min.js"></script>
+<script src="https://d3js.org/d3-geo-projection.v2.min.js"></script>
+
+
+<script>
+
+    var margin = {top: 20, right: 20, bottom: 30, left: 40},
+        width = (window.innerWidth - 250) - margin.left - margin.right,
+        height = (window.innerHeight -50)  - margin.top - margin.bottom;
+
+    var defaultZoom = 1;
+    var defaultTranslateX = 0;
+    var defaultTranslateY = 0;
+
+    var projection = d3.geoNaturalEarth();
+        //.scale(200);
+
+    var path = d3.geo.path()
+        .projection(projection);
+
+    var svg = d3.select("body").append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+    var states = svg.append("svg:g")
+        .attr("id", "states") ;
+
+    var circles = svg.append("svg:g")
+        .attr("id", "circles");
+
+    var cells = svg.append("svg:g")
+        .attr("id", "cells");
+
+    // Group for the arcs
+    var arcs = svg.append("g")
+        .attr("class","arcs");
+
+
+    var g = svg.append("g");
+
+
+    /*d3.select("input[type=checkbox]").on("change", function() {
+        cells.classed("voronoi", this.checked);
+    });*/
+
+
+    d3.json("countries.geo.json", function(collection) {
+        states.selectAll("path")
+            .attr("id", "states")
+            .data(collection.features)
+            .enter().append("svg:path")
+            .attr("d", path)
+            .on("click", clicked);
+        collection.features.forEach(function(coords) {
+            //console.log(coords.geometry.coordinates);
+            // function per country
+        });
+
+        // Create a path for each source/target pair.
+        arcs.selectAll("path")
+            .data(arcdata)
+            .enter()
+            .append("path")
+            .attr('d', function(d) {
+                return lngLatToArc(d, 'sourceLocation', 'targetLocation', 15); // A bend of 5 looks nice and subtle, but this will depend on the length of your arcs and the visual look your visualization requires. Higher number equals less bend.
+            });
+    });
+
+
+    // --------------- Zoom & Pan functionality -----------------------------
+
+    var zoom = d3.behavior.zoom()
+        .translate([defaultTranslateX, defaultTranslateY])
+        .scale(defaultZoom)
+        .scaleExtent([defaultZoom, 100])
+        .on("zoom", zoomed);
+
+    d3.select("body")
+        .call(zoom);
+
+    function zoomed() {
+        console.log("zoooming");
+        svg.transition()
+            .duration(750)
+            .attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")")
+            ;
+    }
+
+    // --------------------- Click functionality -----------------------------
+
+    function clicked(d) {
+        // ... add click functionality!
+
+
+        var selection = d3.select(this).style("fill", "black");
+        selection.classed("selected", !selection.classed("selected"));
+
+        if (selection.classed("selected")==false) {
+            selection.style("fill", "LightGray");
+            console.log("WHITE");
+        }
+        console.log("clicking?");
+
+        var centerPoint = getCenter(d);
+
+        console.log(centerPoint);
+
+    }
+
+
+
+    // ----------------------------- DATA (still airport)-----------------------------------------
+
+    d3.csv("flights-airport.csv", function(flights) {
+        var linksByOrigin = {},
+            countByAirport = {},
+            locationByAirport = {},
+            positions = [];
+
+        flights.forEach(function(flight) {
+            var origin = flight.origin,
+                destination = flight.destination,
+                links = linksByOrigin[origin] || (linksByOrigin[origin] = []);
+            links.push({source: origin, target: destination});
+            countByAirport[origin] = (countByAirport[origin] || 0) + 1;
+            countByAirport[destination] = (countByAirport[destination] || 0) + 1;
+        });
+
+        d3.csv("airports.csv", function(airports) {
+
+            // Only consider airports with at least one flight.
+            airports = airports.filter(function(airport) {
+                if (countByAirport[airport.iata]) {
+                    var location = [+airport.longitude, +airport.latitude];
+                    locationByAirport[airport.iata] = location;
+                    positions.push(projection(location));
+                    console.log("loc of airport: " + location);
+                    return true;
+                }
+            });
+
+            circles.selectAll("circle")
+                .data(airports)
+                .enter().append("svg:circle")
+                .attr("cx", function(d, i) { return positions[i][0]; })
+                .attr("cy", function(d, i) { return positions[i][1]; })
+                .attr("r", function(d, i) { return Math.sqrt(countByAirport[d.iata]); })
+                .sort(function(a, b) { return countByAirport[b.iata] - countByAirport[a.iata]; });
+        });
+    });
+
+
+    // ----------------------------- Center of Country -----------------------------------------
+
+    function getCenter(polygon) {
+        if ('geometry' in polygon) polygon = polygon.geometry
+        if (!Array.isArray(polygon)) polygon = polygon.coordinates[0]
+
+        var minx = miny = 1000
+            ,   maxx = maxy = -1000
+        for (var i = 0; i < polygon.length; i++) {
+            var point = polygon[i]
+            var x = point[0]
+            var y = point[1]
+
+            if (x < minx) minx = x
+            else if (x > maxx) maxx = x
+            if (y < miny) miny = y
+            else if (y > maxy) maxy = y
+        }
+
+        return {
+            type: 'Point',
+            coordinates: [
+                minx + ((maxx - minx) / 2),
+                miny + ((maxy - miny) / 2)
+            ]
+        }
+    }
+
+    // ----------------------------- Center of Country -----------------------------------------
+
+    var arcdata = [
+        {
+            sourceLocation: [-99.5606025, 41.068178502813595],
+            targetLocation: [-106.503961875, 33.051502817366334]
+        },
+        {
+            sourceLocation: [-99.5606025, 81.068178502813595],
+            targetLocation: [-150.27544625, 34.29490081496779]
+        },
+        {
+            sourceLocation: [-99.5606025, 41.068178502813595],
+            targetLocation: [-92.793024375, 64.837711658059135]
+        }
+    ]
+
+
+    // This function takes an object, the key names where it will find an array of lng/lat pairs, e.g. `[-74, 40]`
+    // And a bend parameter for how much bend you want in your arcs, the higher the number, the less bend.
+    function lngLatToArc(d, sourceName, targetName, bend){
+        // If no bend is supplied, then do the plain square root
+        bend = bend || 1;
+        // `d[sourceName]` and `d[targetname]` are arrays of `[lng, lat]`
+        // Note, people often put these in lat then lng, but mathematically we want x then y which is `lng,lat`
+
+        var sourceLngLat = d[sourceName],
+            targetLngLat = d[targetName];
+
+        if (targetLngLat && sourceLngLat) {
+            var sourceXY = projection( sourceLngLat ),
+                targetXY = projection( targetLngLat );
+
+            // Uncomment this for testing, useful to see if you have any null lng/lat values
+            // if (!targetXY) console.log(d, targetLngLat, targetXY)
+            var sourceX = sourceXY[0],
+                sourceY = sourceXY[1];
+
+            var targetX = targetXY[0],
+                targetY = targetXY[1];
+
+            var dx = targetX - sourceX,
+                dy = targetY - sourceY,
+                dr = Math.sqrt(dx * dx + dy * dy)*bend;
+
+            // To avoid a whirlpool effect, make the bend direction consistent regardless of whether the source is east or west of the target
+            var west_of_source = (targetX - sourceX) < 0;
+            if (west_of_source) return "M" + targetX + "," + targetY + "A" + dr + "," + dr + " 0 0,1 " + sourceX + "," + sourceY;
+            return "M" + sourceX + "," + sourceY + "A" + dr + "," + dr + " 0 0,1 " + targetX + "," + targetY;
+
+        } else {
+            return "M0,0,l0,0z";
+        }
+    }
+
+</script>
+</body>
