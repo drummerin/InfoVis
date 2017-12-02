@@ -8,16 +8,14 @@
             stroke: #fff;
         }
 
-        path.arc {
-            pointer-events: none;
-            fill: none;
-            stroke: #000;
-            display: none;
+        arc {
+            fill: #d45138;
+            stroke: #d45138;
         }
 
-        path.cell {
-            fill: none;
-            pointer-events: all;
+        path.arc {
+            fill: #d45138;
+            stroke: #d45138;
         }
 
         circle {
@@ -58,6 +56,9 @@
     var projection = d3.geoNaturalEarth();
         //.scale(200);
 
+    var arcdataTrade = [];
+    var arcdataTradeSelected = [];
+
     var path = d3.geo.path()
         .projection(projection);
 
@@ -81,6 +82,9 @@
     var arcs = svg.append("g")
         .attr("class","arcs");
 
+    var arcsTrade = svg.append("g")
+        .attr("class","arcsTrade");
+
 
     var g = svg.append("g");
 
@@ -89,6 +93,8 @@
         cells.classed("voronoi", this.checked);
     });*/
 
+    var countryCodeCenters = [];
+    var countryCodes = [];
 
     d3.json("data/countries.geo.json", function(collection) {
         states.selectAll("path")
@@ -98,9 +104,11 @@
             .attr("d", path)
             .on("click", clicked);
         collection.features.forEach(function(coords) {
-            //console.log(coords.geometry.coordinates);
-            // function per country
+            var countrycode = getFromArrayByCountryName(countryCodes, coords.properties.name);
+            if (countrycode == null) countrycode = ({countryname: coords.properties.name, countrycode2: "not available"});;
+            countryCodeCenters.push({country: coords.properties.name, codetwo: countrycode.countrycode2, codethree: coords.id, center: getCenter(coords, coords.geometry.type).coordinates});
         });
+        console.log(countryCodeCenters);
 
         // Create a path for each source/target pair.
         arcs.selectAll("path")
@@ -108,9 +116,14 @@
             .enter()
             .append("path")
             .attr('d', function(d) {
-                return lngLatToArc(d, 'sourceLocation', 'targetLocation', 15); // A bend of 5 looks nice and subtle, but this will depend on the length of your arcs and the visual look your visualization requires. Higher number equals less bend.
+                var quantites = 15;
+                if (d.importQuant != null) quantites = d.importQuant;
+                return lngLatToArc(d, 'sourceLocation', 'targetLocation', quantites); // A bend of 5 looks nice and subtle, but this will depend on the length of your arcs and the visual look your visualization requires. Higher number equals less bend.
             });
+
     });
+
+
 
 
     // --------------- Zoom & Pan functionality -----------------------------
@@ -145,11 +158,39 @@
             selection.style("fill", "LightGray");
             console.log("WHITE");
         }
-        console.log("clicking?");
 
-        var centerPoint = getCenter(d);
+        //sehr unperformant weil jedesmal über die csv drüber iteriert wird. besser wenn array direkt geschrieben wird ???
 
-        console.log(centerPoint);
+        console.log(d.properties.name);
+
+            arcdataTrade.forEach(function (trade) {
+                var importer = trade.importCountry,
+                    exporter = trade.exportCountry,
+                    importLocation = trade.importLocation,
+                    exportLocation = trade.exportLocation;
+
+                    if(exporter == d.properties.name) {
+                        console.log(exporter);
+                        arcdataTradeSelected.push({
+                            exportCountry: exporter, importCountry: importer,
+                            exportLocation: exportLocation,
+                            importLocation: importLocation
+                        });
+                }
+            });
+
+            arcsTrade.selectAll("arc")
+             .data(arcdataTradeSelected)
+             .enter()
+             .append("svg:path")
+              .style("fill", "Red")
+             .attr('d', function(d) {
+             return lngLatToArc(d, 'exportLocation', 'importLocation', 25); // A bend of 5 looks nice and subtle, but this will depend on the length of your arcs and the visual look your visualization requires. Higher number equals less bend.
+             });
+
+
+        //var centerPoint = getCenter(d);
+        //console.log(centerPoint);
 
     }
 
@@ -180,7 +221,7 @@
                     var location = [+airport.longitude, +airport.latitude];
                     locationByAirport[airport.iata] = location;
                     positions.push(projection(location));
-                    console.log("loc of airport: " + location);
+                    //console.log("loc of airport: " + location);
                     return true;
                 }
             });
@@ -196,11 +237,85 @@
     });
 
 
-    // ----------------------------- Center of Country -----------------------------------------
+    d3.csv("/data/animalTrade.csv", function(trades) {
+        var linksByExporter = {},
+            countByCountry = {},
+            locationByCountry = {};
 
-    function getCenter(polygon) {
+        trades.forEach(function (trade) {
+            var importer = trade.Importer,
+                exporter = trade.Exporter,
+                quantityImp = trade['Importer reported quantity'], //empty spaces!!!
+                links = linksByExporter[exporter] || (linksByExporter[exporter] = []);
+
+            links.push({exportCountry: exporter, importCountry: importer});
+            var exportInfo = getFromArrayByTwoDigits(countryCodeCenters, exporter);
+            var importInfo = getFromArrayByTwoDigits(countryCodeCenters, importer);
+            if (exportInfo != null && importInfo != null) { //if the country codes are available!
+                    arcdataTrade.push({
+                        exportCountry: exportInfo.country, importCountry: importInfo.country,
+                        exportLocation: exportInfo.center,
+                        importLocation: importInfo.center,
+                        importQuant: quantityImp
+                    });
+                    countByCountry[exporter] = (countByCountry[exporter] || 0) + 1;
+                    countByCountry[importer] = (countByCountry[importer] || 0) + 1;
+            }
+        });
+        console.log(arcdataTrade);
+
+    });
+
+    /*rename of Russian Federation -> Russia
+    Congo, the Democratic Republic of the -> Democratic Republic of the Congo
+     United States -> United States of America
+     "Bolivia, Plurinational State of -> Bolivia
+     Venezuela, Bolivarian Republic of -> Venezuela
+     Syrian Arab Republic -> Syria
+     Tanzania, United Republic of -> United Republic of Tanzania
+     Côte d'Ivoire -> Ivory Coast
+     Iran, Islamic Republic of -> Iran
+     Viet Nam -> Vietnam
+     Korea, Republic of -> South Korea
+     Korea, Democratic People's Republic of -> North Korea
+     Taiwan, Province of China -> Taiwan
+    */
+    d3.csv("/data/cc2digit.csv", function(codes) {
+        codes.forEach(function (code) {
+            countryCodes.push({countryname: code.Name, countrycode2: code.Code});
+        });
+    });
+
+
+
+        // ----------------------------- Functions -----------------------------------------
+
+    function getCenter(polygon, geometryType) {
         if ('geometry' in polygon) polygon = polygon.geometry
-        if (!Array.isArray(polygon)) polygon = polygon.coordinates[0]
+
+        if (!Array.isArray(polygon)) {
+            if (geometryType == "Polygon") {
+                polygon = polygon.coordinates[0]
+            }
+            //find out the centerpoint of the largest coordinate array!
+            else if (geometryType == "MultiPolygon") {
+
+                var counter = 0;
+                var longestArray = 0;
+                var longestArrayLength = 0;
+                polygon.coordinates.forEach(function (arrays) {
+                    arrays.forEach(function (arraySecond){
+                        counter = counter + 1;
+                        if(arraySecond.length > longestArrayLength){
+                            longestArrayLength = arraySecond.length;
+                            longestArray = counter;
+                        }
+                    });
+                });
+                polygon = polygon.coordinates[longestArray-1][0]
+            }
+        }
+
 
         var minx = miny = 1000
             ,   maxx = maxy = -1000
@@ -224,6 +339,25 @@
         }
     }
 
+    function getFromArrayByCountryName(arr, value) {
+
+        var result = [];
+        arr.forEach(function(o){if (o.countryname === value) result.push(o);} );
+        return result? result[0] : null; // or undefined
+    }
+
+    function getFromArrayByTwoDigits(arr, value) {
+
+        var result = [];
+        arr.forEach(function(o){if (o.codetwo === value) result.push(o);} );
+        return result? result[0] : null; // or undefined
+
+    }
+
+
+
+
+
     // ----------------------------- Center of Country -----------------------------------------
 
     var arcdata = [
@@ -246,6 +380,7 @@
     // And a bend parameter for how much bend you want in your arcs, the higher the number, the less bend.
     function lngLatToArc(d, sourceName, targetName, bend){
         // If no bend is supplied, then do the plain square root
+        //console.log(d);
         bend = bend || 1;
         // `d[sourceName]` and `d[targetname]` are arrays of `[lng, lat]`
         // Note, people often put these in lat then lng, but mathematically we want x then y which is `lng,lat`
