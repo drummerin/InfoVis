@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <head>
+    <title>Endangered Species!</title>
+    <link rel="shortcut icon" type="image/png" href="http://localhost:8000/assets/favicon.png">
     <style>
 
         #states path {
@@ -9,13 +11,11 @@
         }
 
         arc {
-            fill: #d45138;
             stroke: #d45138;
         }
 
         path.arc {
-            fill: #d45138;
-            stroke: #d45138;
+            stroke: #43d423;
         }
 
         circle {
@@ -32,10 +32,13 @@
             display: inherit;
         }
     </style>
+
 </head>
 <body>
 
-<div id="mapi" style="border:1px dotted blue; width: 200px; height: 475px; position: absolute; right: 10px;"></div>
+<div id="info" style="border:1px dotted blue; width: 200px; height: 475px; position: absolute; right: 10px;">
+    <p id="textCountryName">Endangered Species Information Visualisation</p>
+</div>
 <!--div id="container1" style="border:1px dotted blue; width: 700px; height: 475px; position: relative;"></div-->
 <script src="/components/d3/d3.min.js"></script>
 <script src="https://d3js.org/d3-array.v1.min.js"></script>
@@ -59,6 +62,13 @@
     var arcdataTrade = [];
     var arcdataTradeSelected = [];
 
+    var countryCodeCenters = [];
+    var countryCodes = [];
+
+    var oneCountrySelected = false;
+    var selectedCountry = "None";
+    var formerSelection;
+
     var path = d3.geo.path()
         .projection(projection);
 
@@ -78,23 +88,15 @@
     var cells = svg.append("svg:g")
         .attr("id", "cells");
 
-    // Group for the arcs
-    var arcs = svg.append("g")
-        .attr("class","arcs");
 
-    var arcsTrade = svg.append("g")
-        .attr("class","arcsTrade");
+    var arcsTrade = svg.append("svg:g")
+        .attr("id","arcsTrade");
 
 
     var g = svg.append("g");
 
 
-    /*d3.select("input[type=checkbox]").on("change", function() {
-        cells.classed("voronoi", this.checked);
-    });*/
 
-    var countryCodeCenters = [];
-    var countryCodes = [];
 
     d3.json("data/countries.geo.json", function(collection) {
         states.selectAll("path")
@@ -102,28 +104,16 @@
             .data(collection.features)
             .enter().append("svg:path")
             .attr("d", path)
-            .on("click", clicked);
+            .on("click", clicked)
+        ;
         collection.features.forEach(function(coords) {
             var countrycode = getFromArrayByCountryName(countryCodes, coords.properties.name);
             if (countrycode == null) countrycode = ({countryname: coords.properties.name, countrycode2: "not available"});;
             countryCodeCenters.push({country: coords.properties.name, codetwo: countrycode.countrycode2, codethree: coords.id, center: getCenter(coords, coords.geometry.type).coordinates});
         });
-        console.log(countryCodeCenters);
 
-        // Create a path for each source/target pair.
-        arcs.selectAll("path")
-            .data(arcdata)
-            .enter()
-            .append("path")
-            .attr('d', function(d) {
-                var quantites = 15;
-                if (d.importQuant != null) quantites = d.importQuant;
-                return lngLatToArc(d, 'sourceLocation', 'targetLocation', quantites); // A bend of 5 looks nice and subtle, but this will depend on the length of your arcs and the visual look your visualization requires. Higher number equals less bend.
-            });
 
     });
-
-
 
 
     // --------------- Zoom & Pan functionality -----------------------------
@@ -148,93 +138,141 @@
     // --------------------- Click functionality -----------------------------
 
     function clicked(d) {
-        // ... add click functionality!
+
+        var selection = d3.select(this);
+
+        // Case: No Country is selected yet, the one that gets clicked => gets selected!
+        if (oneCountrySelected == false && d.properties.name != selectedCountry){
+
+            selectedCountry = d.properties.name;
+            oneCountrySelected = true;
+            formerSelection = selection;
+
+            selection.style("fill", "black");
+            selection.classed("selected", true);
 
 
-        var selection = d3.select(this).style("fill", "black");
-        selection.classed("selected", !selection.classed("selected"));
+            //sehr unperformant weil jedesmal über die csv drüber iteriert wird. besser wenn array direkt geschrieben wird ???
 
-        if (selection.classed("selected")==false) {
-            selection.style("fill", "LightGray");
-            console.log("WHITE");
+            writeCountryTradesToArray(d);
+            viewTradesOfCountry();
+
+            changeInfoText(d, true);
         }
 
-        //sehr unperformant weil jedesmal über die csv drüber iteriert wird. besser wenn array direkt geschrieben wird ???
+        // Case: One Country is already selected, this one gets clicked again => deselect it!
+        else if (oneCountrySelected == true && d.properties.name == selectedCountry) {
 
-        console.log(d.properties.name);
+            selectedCountry = "None";
+            oneCountrySelected = false;
 
-            arcdataTrade.forEach(function (trade) {
-                var importer = trade.importCountry,
-                    exporter = trade.exportCountry,
-                    importLocation = trade.importLocation,
-                    exportLocation = trade.exportLocation;
+            changeInfoText(d, false);
+            deselectCountry(selection);
+        }
 
-                    if(exporter == d.properties.name) {
-                        console.log(exporter);
-                        arcdataTradeSelected.push({
-                            exportCountry: exporter, importCountry: importer,
-                            exportLocation: exportLocation,
-                            importLocation: importLocation
-                        });
-                }
-            });
+        // Case: One Country is already selected, another one gets clicked => deselect it and select new one!
+        else if (oneCountrySelected == true && d.properties.name != selectedCountry) {
 
-            arcsTrade.selectAll("arc")
-             .data(arcdataTradeSelected)
-             .enter()
-             .append("svg:path")
-              .style("fill", "Red")
-             .attr('d', function(d) {
-             return lngLatToArc(d, 'exportLocation', 'importLocation', 25); // A bend of 5 looks nice and subtle, but this will depend on the length of your arcs and the visual look your visualization requires. Higher number equals less bend.
-             });
+            if (formerSelection.classed("selected")) {
+                formerSelection.classed("selected", false);
+                formerSelection.style("fill", "LightGray");
+            }
 
+            selectedCountry = d.properties.name;
+            formerSelection = selection;
+            oneCountrySelected = true;
 
-        //var centerPoint = getCenter(d);
-        //console.log(centerPoint);
+            deselectCountry(selection);
+            writeCountryTradesToArray(d);
+            viewTradesOfCountry();
+            changeInfoText(d, true);
 
+            selection.style("fill", "black");
+            selection.classed("selected", true);
+
+        }
     }
 
+    function writeCountryTradesToArray(d) {
+
+        var countByCountry = {},
+            locationByCountry = {};
+
+        arcdataTrade.forEach(function (trade) {
+            var importer = trade.importCountry,
+                exporter = trade.exportCountry,
+                importLocation = trade.importLocation,
+                exportLocation = trade.exportLocation,
+                importQuants = trade.importQuant;
+
+            if (exporter == d.properties.name) {
+
+                countByCountry[importer] = (countByCountry[importer] || 0) + 1;
+                arcdataTradeSelected.push({
+                    exportCountry: exporter, importCountry: importer,
+                    exportLocation: exportLocation,
+                    importLocation: importLocation,
+                    importQuant: importQuants,
+                    importPerCountry: countByCountry[importer]
+                });
+            }
+        });
+    }
+
+    function viewTradesOfCountry() {
+
+        arcsTrade.selectAll("arcsTrade")
+            .data(arcdataTradeSelected)
+            .enter()
+            .append("svg:path")
+            .style("stroke", "Red")
+            .style("fill", "none")
+            .style("stroke-width", function (d) {
+
+                if(d.importPerCountry == null || d.importPerCountry <= 5) return 1;
+                else if(d.importPerCountry > 5 || d.importPerCountry <= 10) return 2;
+                else if(d.importPerCountry > 10 || d.importPerCountry <= 25) return 3;
+                else if(d.importPerCountry > 25 || d.importPerCountry <= 50) return 5;
+                else if(d.importPerCountry > 50 ) return 10;
+                // A bend of 5 looks nice and subtle, but this will depend on the length of your arcs and the visual look your visualization requires. Higher number equals less bend.
+            })
+            .attr('d', function (d) {
+                return lngLatToArc(d, 'exportLocation', 'importLocation', 0); // A bend of 5 looks nice and subtle, but this will depend on the length of your arcs and the visual look your visualization requires. Higher number equals less bend.
+            });
+    }
+
+    function deselectCountry(selection) {
+
+        //empty Trade Data Array !
+        arcdataTradeSelected = [];
 
 
-    // ----------------------------- DATA (still airport)-----------------------------------------
-
-    d3.csv("/data/flights-airport.csv", function(flights) {
-        var linksByOrigin = {},
-            countByAirport = {},
-            locationByAirport = {},
-            positions = [];
-
-        flights.forEach(function(flight) {
-            var origin = flight.origin,
-                destination = flight.destination,
-                links = linksByOrigin[origin] || (linksByOrigin[origin] = []);
-            links.push({source: origin, target: destination});
-            countByAirport[origin] = (countByAirport[origin] || 0) + 1;
-            countByAirport[destination] = (countByAirport[destination] || 0) + 1;
+        var test = svg.select('#arcsTrade').selectAll("path").data(arcdataTradeSelected, function (d) {
+            return d.id;
         });
 
-        d3.csv("/data/airports.csv", function(airports) {
-
-            // Only consider airports with at least one flight.
-            airports = airports.filter(function(airport) {
-                if (countByAirport[airport.iata]) {
-                    var location = [+airport.longitude, +airport.latitude];
-                    locationByAirport[airport.iata] = location;
-                    positions.push(projection(location));
-                    //console.log("loc of airport: " + location);
-                    return true;
-                }
+        //path needs to be on update+enter to delete/remove arcs
+        test.enter()
+            .append("svg:path")
+            .attr('d', function (d) {
+                return lngLatToArc(d, 'exportLocation', 'importLocation', 25); // A bend of 5 looks nice and subtle, but this will depend on the length of your arcs and the visual look your visualization requires. Higher number equals less bend.
             });
 
-            circles.selectAll("circle")
-                .data(airports)
-                .enter().append("svg:circle")
-                .attr("cx", function(d, i) { return positions[i][0]; })
-                .attr("cy", function(d, i) { return positions[i][1]; })
-                .attr("r", function(d, i) { return Math.sqrt(countByAirport[d.iata]); })
-                .sort(function(a, b) { return countByAirport[b.iata] - countByAirport[a.iata]; });
-        });
-    });
+        test.exit().remove();
+
+        selection.classed("selected", false);
+        selection.style("fill", "LightGray");
+    }
+
+    function changeInfoText (d, selectedBool) {
+        if(selectedBool == true){
+        document.getElementById("textCountryName").innerHTML = d.properties.name;}
+        else {
+        document.getElementById("textCountryName").innerHTML = "Select a country to see the trades";
+        }
+    }
+
+    // ----------------------------- DATA (still airport)-----------------------------------------
 
 
     d3.csv("/data/animalTrade.csv", function(trades) {
@@ -248,6 +286,7 @@
                 quantityImp = trade['Importer reported quantity'], //empty spaces!!!
                 links = linksByExporter[exporter] || (linksByExporter[exporter] = []);
 
+
             links.push({exportCountry: exporter, importCountry: importer});
             var exportInfo = getFromArrayByTwoDigits(countryCodeCenters, exporter);
             var importInfo = getFromArrayByTwoDigits(countryCodeCenters, importer);
@@ -258,11 +297,10 @@
                         importLocation: importInfo.center,
                         importQuant: quantityImp
                     });
-                    countByCountry[exporter] = (countByCountry[exporter] || 0) + 1;
-                    countByCountry[importer] = (countByCountry[importer] || 0) + 1;
+
             }
         });
-        console.log(arcdataTrade);
+        console.log(arcdataTrade); //shows if loading was successfull...
 
     });
 
@@ -359,22 +397,6 @@
 
 
     // ----------------------------- Center of Country -----------------------------------------
-
-    var arcdata = [
-        {
-            sourceLocation: [-99.5606025, 41.068178502813595],
-            targetLocation: [-106.503961875, 33.051502817366334]
-        },
-        {
-            sourceLocation: [-99.5606025, 81.068178502813595],
-            targetLocation: [-150.27544625, 34.29490081496779]
-        },
-        {
-            sourceLocation: [-99.5606025, 41.068178502813595],
-            targetLocation: [-92.793024375, 64.837711658059135]
-        }
-    ]
-
 
     // This function takes an object, the key names where it will find an array of lng/lat pairs, e.g. `[-74, 40]`
     // And a bend parameter for how much bend you want in your arcs, the higher the number, the less bend.
