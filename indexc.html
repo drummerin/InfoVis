@@ -77,9 +77,6 @@
     var cells = svg.append("svg:g")
         .attr("id", "cells");
 
-    // Group for the arcs
-    var arcs = svg.append("g")
-        .attr("class","arcs");
 
 
     var g = svg.append("g");
@@ -90,13 +87,84 @@
     });*/
 
 
-    d3.json("data/countries.geo.json", function(collection) {
-        states.selectAll("path")
-            .attr("id", "states")
-            .data(collection.features)
-            .enter().append("svg:path")
-            .attr("d", path)
-            .on("click", clicked);
+
+
+
+
+
+
+        d3.csv("/data/ForestData.csv", function (countries){
+            countries.forEach(function (country) {
+
+
+
+
+                console.log("COUNTRY" + country)
+
+                var cName = country.Country,
+                    startArea= country.y1990,
+                    endArea = country.y2016;
+                    cColor = "blue";
+
+                    if(startArea>100000)
+                    {
+                        cColor = "red";
+                    }
+
+
+
+
+                d3.json("data/countries.geo.json", function(collection) {
+
+                    color.domain([0, d3.max(features, nameLength)]);
+
+                    collection.features.forEach(function (setC) {
+
+
+
+
+                        if(setC.properties.name == cName)
+                        {
+                            console.log(cName);
+                            svg.select("path")
+                                .style("fill", cColor)
+
+                        }
+
+                    });
+
+
+
+
+
+                    var allC = collection.features;
+                    allC.forEach(function (d) {
+                        var tempName = d.properties.name
+
+
+                    });
+
+
+
+                    states.selectAll("path")
+                        .attr("id", "states")
+                        .data(collection.features)
+                        .enter().append("svg:path")
+                        .attr("d", path)
+                        .on("click", clicked)
+
+
+
+
+                });
+
+
+
+
+        });
+
+
+
     });
 
 
@@ -125,10 +193,7 @@
 
                 if (d.properties.name==cName)
                 {
-                    var circle = d3.geoCircle().center([centerPoint.coordinates[0],centerPoint[1]]).radius(2);
-                    svg.append("path")
-                        .attr("d", path(circle()))
-                        .attr("fill","steelblue");
+
                 }
 
 
@@ -138,79 +203,6 @@
         });
 
     }
-
-
-    /*var margin = {top: 20, right: 20, bottom: 70, left: 40},
-        width = 500 - margin.left - margin.right,
-        height = 300 - margin.top - margin.bottom;
-
-
-    var x = d3.scale.ordinal().rangeRoundBands([0, width], .05);
-
-    var y = d3.scale.linear().range([height, 0]);
-
-    var xAxis = d3.svg.axis()
-        .scale(x)
-        .orient("bottom")
-
-    var yAxis = d3.svg.axis()
-        .scale(y)
-        .orient("left")
-        .ticks(10);
-
-    var svg = d3.select("body").append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-        .append("g")
-        .attr("transform",
-            "translate(" + margin.left + "," + margin.top + ")");
-
-    d3.csv("/data/ForestDataSmall.csv", function(error, data) {
-
-
-            data.forEach(function (d) {
-                    d.y1990 = +d.y1990;
-            });
-
-            x.domain(data.map(function (d) {
-                    return d.Country;
-            }));
-            y.domain([0, d3.max(data, function (d) {
-                return d.y1990;
-
-            })]);
-
-            svg.append("g")
-                .attr("class", "x axis")
-                .attr("transform", "translate(0," + height + ")")
-                .call(xAxis)
-                .selectAll("text")
-                .style("text-anchor", "end")
-                .attr("dx", "-.8em")
-                .attr("dy", "-.6em")
-                .attr("transform", "rotate(-90)");
-
-            svg.append("g")
-                .attr("class", "y axis")
-                .call(yAxis)
-                .append("text")
-                .attr("transform", "rotate(-90)")
-                .attr("y", 6)
-                .attr("dy", ".8em")
-                .style("text-anchor", "end")
-                .text("sq km");
-
-        svg.selectAll("bar")
-            .data(data)
-            .enter().append("rect")
-            .style("fill", "red")
-            .attr("x", function(d) {  return x(d.Country); })
-            .attr("width", x.rangeBand())
-            .attr("y", function(d) { return y(d.y1990); })
-            .attr("height", function(d) {return height - y(d.y1990); });
-
-        });
-        */
 
 
 
