@@ -5,18 +5,11 @@
     <link rel="shortcut icon" type="image/png" href="http://localhost:8000/assets/favicon.png">
     <style>
 
-        #states path {
+        .states {
             fill: #ccc;
             stroke: #fff;
         }
 
-        arc {
-            stroke: #d45138;
-        }
-
-        path.arc {
-            stroke: #43d423;
-        }
 
         circle {
             fill: steelblue;
@@ -24,40 +17,73 @@
             stroke: #fff;
         }
 
-        #cells.voronoi path.cell {
-            stroke: brown;
+
+        .tooltip {
+            position: absolute;
+            text-align: center;
+            width: 60px;
+            height: auto;
+            padding: 2px;
+            font: 12px sans-serif;
+            background: lightsteelblue;
+            border: 0px;
+            border-radius: 8px;
+            pointer-events: none;
         }
 
-        #cells g:hover path.arc {
-            display: inherit;
+        /*
+            Pie Charts
+        */
+        .arc text {
+            font: 10px sans-serif;
+            text-anchor: middle;
+        }
+
+        .arc path {
+            stroke: #fff;
+        }
+
+
+        .background {
+            fill: none;
+            pointer-events: all;
+        }
+
+
+        #states .active {
+            fill: orange;
         }
     </style>
 
 </head>
 <body>
+<div id="content">
+    <div id="map" style="border:1px dotted blue; height: 500px; width: 850px; overflow: hidden; float: left; " ></div>
 
-<div id="info" style="border:1px dotted blue; width: 200px; height: 475px; position: absolute; right: 10px;">
-    <p id="textCountryName">Endangered Species Information Visualisation</p>
+    <div id="info" style="border:1px dotted blue; width: 250px; height: 500px; float:left; background-color: white; margin-left: 10px;" >
+        <img id="logo" src="img/logo.png">
+        <p id="textCountryName">Endangered Species Information Visualisation</p>
+        <div id="chart"></div>
+    </div>
 </div>
 <!--div id="container1" style="border:1px dotted blue; width: 700px; height: 475px; position: relative;"></div-->
-<script src="/components/d3/d3.min.js"></script>
+<!--script src="/components/d3/d3.min.js"></script-->
 <script src="https://d3js.org/d3-array.v1.min.js"></script>
 <script src="https://d3js.org/d3-geo.v1.min.js"></script>
 <script src="https://d3js.org/d3-geo-projection.v2.min.js"></script>
+<script src="https://d3js.org/d3.v4.min.js"></script>
 
 
 <script>
 
-    var margin = {top: 20, right: 20, bottom: 30, left: 40},
-        width = (window.innerWidth - 250) - margin.left - margin.right,
-        height = (window.innerHeight -50)  - margin.top - margin.bottom;
+    var width = 880,
+        height = 500,
+        widthPie = 250,
+        heightPie = 250;
 
-    var defaultZoom = 1;
-    var defaultTranslateX = 0;
-    var defaultTranslateY = 0;
-
-    var projection = d3.geoNaturalEarth();
-        //.scale(200);
+    var projection = d3.geoNaturalEarth()
+        .scale(175)
+        .translate([width / 2, height / 2]);
 
     var arcdataTrade = [];
     var arcdataTradeSelected = [];
@@ -65,47 +91,120 @@
     var countryCodeCenters = [];
     var countryCodes = [];
 
+    var forestData = [];
+
+
+    /*
+    * lc = least concern
+    * nt = near threatened
+    * LR/cd = Lower Risk (conservation dependent)
+    * LR/nt = Lower Risk (near threatened)
+    * LR/lc = Lower Risk (least concern)
+    * vu = vulnerable
+    * en = endangered
+    * cr = critically endangered
+    * ew = extinct in the wild
+    * ex = extinct
+    * dd = data deficient
+    * ne = not evaluated
+    *
+    * */
+
     var oneCountrySelected = false;
     var selectedCountry = "None";
     var formerSelection;
 
-    var path = d3.geo.path()
+    var path = d3.geoPath()
         .projection(projection);
 
-    var svg = d3.select("body").append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-        .append("g")
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+    var zoom = d3.zoom()
+    //.translateTo([defaultTranslateX, defaultTranslateY])
+        //.scaleExtent([1, 8])
+        .on("zoom", zoomed);
 
+    var svg = d3.select("#map").append("svg")
+        .attr("width", width)
+        .attr('transform', 'translate('+-50+')')
+        .attr("height", height);
 
-    var states = svg.append("svg:g")
+    var svgPie = d3.select("#info").append("svg")
+        .attr("width", widthPie)
+        .attr("height", heightPie);
+
+    svg.append("rect")
+        .attr("class", "background")
+        .attr("width", width)
+        .attr("height", height)
+        .on("click", reset)
+        .on("mouseover", function (d){
+            tooltip.transition()
+                .duration(200)
+                .style("opacity", 0);
+
+        });
+
+    var states = svg.append("g")
         .attr("id", "states") ;
 
-    var circles = svg.append("svg:g")
-        .attr("id", "circles");
-
-    var cells = svg.append("svg:g")
-        .attr("id", "cells");
+    var g = svg.append("g"); // states, trades
+    var g1 = svgPie.append("g"); // Pie Chart
 
 
-    var arcsTrade = svg.append("svg:g")
+    svg
+        .call(zoom); // delete this line to disable free zooming
+
+    var arcsTrade = g.append("g")
         .attr("id","arcsTrade");
 
+    var tooltip = d3.select("body").append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0);
 
-    var g = svg.append("g");
 
 
+    // ----------------- Countries -------------------------------
 
+    /*from http://colorbrewer2.org/#type=diverging&scheme=RdYlGn&n=9
+    * #d73027
+     #f46d43
+     #fdae61
+     #fee08b
+     #ffffbf
+     #d9ef8b
+     #a6d96a
+     #66bd63
+     #1a9850
+    * */
+    var colorForest = d3.scaleOrdinal(["#d73027", "#f46d43", "#fdae61", "#fee08b", "#ffffbf", "#d9ef8b", "#a6d96a", "#66bd63", "#1a9850" ]);
+    //var colorForest = d3.scaleOrdinal(["#1a9850", "#66bd63", "#a6d96a", "#d9ef8b", "#ffffbf", "#fee08b", "#fdae61", "#f46d43", "#d73027" ]);
 
+    i=0;
     d3.json("data/countries.geo.json", function(collection) {
-        states.selectAll("path")
-            .attr("id", "states")
+        g.selectAll("path")
             .data(collection.features)
-            .enter().append("svg:path")
+            .enter().append("path")
             .attr("d", path)
+            .attr("class", "states")
+            .style("fill", function(d) {
+                for(i=0; i<forestData.length; i++) {
+                    if (d.properties.name === forestData[i].country) {
+                        console.log(forestData[i].country + " .. " + forestData[i].deforestation);
+                        deforestation = forestData[i].deforestation;
+                        break;
+                    }
+                }
+                return colorForest(deforestation);
+                })
+
             .on("click", clicked)
-        ;
+            .on("mouseover", function (d){
+                tooltip.transition()
+                    .duration(200)
+                    .style("opacity", .9);
+                tooltip.html(d.properties.name + "<br/>" + "lulu")
+                    .style("left", (d3.event.pageX) + "px")
+                    .style("top", (d3.event.pageY - 28) + "px");
+            });
         collection.features.forEach(function(coords) {
             var countrycode = getFromArrayByCountryName(countryCodes, coords.properties.name);
             if (countrycode == null) countrycode = ({countryname: coords.properties.name, countrycode2: "not available"});;
@@ -115,31 +214,134 @@
 
     });
 
+    // ------------  Forest Data  -----------------------
+
+    d3.csv("/data/ForestData.csv", function (countries){
+        countries.forEach(function (country) {
+            var cName = country.Country,
+                startArea= country.y1990,
+                endArea = country.y2015;
+
+
+                var deforestation = startArea - endArea;
+
+
+                if (startArea != null && endArea != null) { //if the country codes are available!
+                    forestData.push({
+                        country: cName,
+                        deforestation: deforestation
+                    });
+
+                }
+                else {
+                    console.log("no year data for " + cName);
+                }
+            });
+            console.log(forestData); //shows if loading was successfull...
+
+    });
+
+
+
+    // ------------------- RED LIST Api Request ----------------------------
+
+
+
+        var token = "?token=9bb4facb6d23f48efbf424bb05c0c1ef1cf6f468393bc745d42179ac4aca5fee";
+        var countryRequest = "AZ";
+        var pageNr = 0;
+        var requestSpeciesCountry = "country/getspecies/";
+        var requestTotalSpeciesNumber = "speciescount";
+
+        var url = "http://apiv3.iucnredlist.org/api/v3/";
+
+        // FALSCHE DATEN !!! jedes einzelne LAND -> species doppelt für regionen!!!
+
+
+
+
+
+
+
+    // ---------------------- Pie Charts ----------------------------------
+
+
+
+
+
+        var radiusPie = 100;
+
+
+    var colorPie = d3.scaleOrdinal(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
+    var pie = d3.pie()
+        .sort(null)
+        .value(function(d) { return d.value; });
+
+    var pathPie = d3.arc()
+        .outerRadius(radiusPie - 10)
+        .innerRadius(0);
+
+    var label = d3.arc()
+        .outerRadius(radiusPie - 40)
+        .innerRadius(radiusPie - 40);
+
+
+    d3.csv("/data/speciesGlobal.csv", function(d) {
+        return d;
+    }, function(error, data) {
+        if (error) throw error;
+        console.log(data);
+
+        var arc = g1.selectAll(".arc")
+            .data(pie(data))
+            .enter().append("g")
+            .attr("class", "arc").attr('transform', 'translate(' + radiusPie +
+                ',' + radiusPie + ')');
+
+        arc.append("path")
+            .attr("d", pathPie)
+            .attr("fill", function(d) { return colorPie(d.data.value); });
+
+        arc.append("text")
+            .attr("transform", function(d) { return "translate(" + label.centroid(d) + ")"; })
+            .attr("dy", "0.35em")
+            .text(function(d) { return d.data.status; });
+    });
+
+
+        console.log("show me pie chart?");
+
+
+
 
     // --------------- Zoom & Pan functionality -----------------------------
 
-    var zoom = d3.behavior.zoom()
-        .translate([defaultTranslateX, defaultTranslateY])
-        .scale(defaultZoom)
-        .scaleExtent([defaultZoom, 100])
-        .on("zoom", zoomed);
-
-    d3.select("body")
-        .call(zoom);
 
     function zoomed() {
-        console.log("zoooming");
+        g.style("stroke-width", 1.5 / d3.event.transform.k + "px");
+        g.attr("transform", d3.event.transform); // updated for d3 v4
+
+    }
+
+    function reset() {
+
         svg.transition()
             .duration(750)
-            .attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")")
-            ;
+            .call( zoom.transform, d3.zoomIdentity );
     }
+
+
+
 
     // --------------------- Click functionality -----------------------------
 
     function clicked(d) {
 
+        console.log(d);
+
         var selection = d3.select(this);
+
+        console.log(selection);
 
         // Case: No Country is selected yet, the one that gets clicked => gets selected!
         if (oneCountrySelected == false && d.properties.name != selectedCountry){
@@ -221,10 +423,11 @@
 
     function viewTradesOfCountry() {
 
-        arcsTrade.selectAll("arcsTrade")
+        g.selectAll("arcsTrade")
             .data(arcdataTradeSelected)
             .enter()
-            .append("svg:path")
+            .append("path")
+            .attr("class", "arcsTrade")
             .style("stroke", "Red")
             .style("fill", "none")
             .style("stroke-width", function (d) {
@@ -247,13 +450,13 @@
         arcdataTradeSelected = [];
 
 
-        var test = svg.select('#arcsTrade').selectAll("path").data(arcdataTradeSelected, function (d) {
+        var test = g.selectAll("path.arcsTrade").data(arcdataTradeSelected, function (d) {
             return d.id;
         });
 
         //path needs to be on update+enter to delete/remove arcs
         test.enter()
-            .append("svg:path")
+            .append("path")
             .attr('d', function (d) {
                 return lngLatToArc(d, 'exportLocation', 'importLocation', 25); // A bend of 5 looks nice and subtle, but this will depend on the length of your arcs and the visual look your visualization requires. Higher number equals less bend.
             });
