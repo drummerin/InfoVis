@@ -186,10 +186,12 @@
             .attr("d", path)
             .attr("class", "states")
             .style("fill", function(d) {
+                console.log(forestData.length);
                 for(i=0; i<forestData.length; i++) {
+                    console.log(forestData[i].country + " .. " + d.properties.name);
                     if (d.properties.name === forestData[i].country) {
                         console.log(forestData[i].country + " .. " + forestData[i].deforestation);
-                        deforestation = forestData[i].deforestation;
+                        var deforestation = forestData[i].deforestation;
                         break;
                     }
                 }
@@ -216,15 +218,16 @@
 
     // ------------  Forest Data  -----------------------
 
-    d3.csv("/data/ForestData.csv", function (countries){
+    d3.csv("/data/ForestPercent.csv", function (countries){
         countries.forEach(function (country) {
             var cName = country.Country,
-                startArea= country.y1990,
-                endArea = country.y2015;
+                startArea= country.y2015,
+                endArea = country["2000"];
+
 
 
                 var deforestation = startArea - endArea;
-
+            console.log("DEFORESTATION: "+  deforestation);
 
                 if (startArea != null && endArea != null) { //if the country codes are available!
                     forestData.push({
