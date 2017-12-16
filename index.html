@@ -206,28 +206,14 @@
 
     setSelection('ForestPercent');
 
-
     function drawCountries( dataSet, selection ) {
 
-    /*from http://colorbrewer2.org/#type=diverging&scheme=RdYlGn&n=9
-     * #d73027
-     #f46d43
-     #fdae61
-     #fee08b
-     #ffffbf
-     #d9ef8b
-     #a6d96a
-     #66bd63
-     #1a9850
-     * */
+    //from http://colorbrewer2.org/#type=diverging&scheme=RdYlGn&n=9
     var color;
-    console.log(dataSet);
     // GREEN
-    if(selection === 'ForestPercent'){
+    /*if(selection === 'ForestPercent'){
         color = d3.scaleOrdinal(["#006837", "#31a354", "#78c679", "#c2e699", "#ffffcc"]);
-        console.log("FORREST SELECTED");
     }
-    //
     else if(selection =='PopDensity'){
         color = d3.scaleOrdinal(["#d73027", "#f46d43",  "#66bd63", "#1a9850"]);
         console.log("POPDENS");
@@ -244,8 +230,9 @@
     else if(selection == 'Poverty'){
         color = d3.scaleOrdinal(["#d73027", "#f46d43",  "#66bd63", "#1a9850"]);
     }
-    //else {color = d3.scaleOrdinal(["#d73027", "#f46d43", "#fdae61"]);
-    //}
+    else {
+        color = d3.scaleOrdinal(["#d73027", "#f46d43", "#fdae61"]);
+    }*/
 
     d3.json("data/countries.geo.json", function (collection) {
         g.selectAll("path")
@@ -257,10 +244,19 @@
                 var colorN;
                 for (var i = 0; i < dataSet.length; i++) {
                     if (d.id === dataSet[i].country) {
-                        //console.log("color country: " + d.id + dataSet[i].value);
                         var data = dataSet[i].value;
-                        colorN = color(data);
-                        //console.log(colorN);
+                        if (data < 20) {
+                            colorN = "#004400"
+                        }
+                        else if (data < 40 && data > 20 ) {
+                            colorN = "#FF4400"
+                        }
+                        else if (data < 60 && data > 40 ) {
+                            colorN = "#FF44FF"
+                        }
+                        else if (data > 60 ) {
+                            colorN = "#0044FF"
+                        }
                         break;
                     }
                     //if country cannot be found (= data not available), make grey!
@@ -288,7 +284,7 @@
                 countryname: coords.properties.name,
                 countrycode2: "not available"
             });
-            ;
+
             countryCodeCenters.push({
                 country: coords.properties.name,
                 codetwo: countrycode.countrycode2,
@@ -300,26 +296,6 @@
 
     });
 }
-
-
-
-    // ------------------- RED LIST Api Request ----------------------------
-
-
-
-        var token = "?token=9bb4facb6d23f48efbf424bb05c0c1ef1cf6f468393bc745d42179ac4aca5fee";
-        var countryRequest = "AZ";
-        var pageNr = 0;
-        var requestSpeciesCountry = "country/getspecies/";
-        var requestTotalSpeciesNumber = "speciescount";
-
-        var url = "http://apiv3.iucnredlist.org/api/v3/";
-
-        // FALSCHE DATEN !!! jedes einzelne LAND -> species doppelt für regionen!!!
-
-
-
-
 
 
 
@@ -425,30 +401,22 @@
                 }
                 var val;
 
+                // For Deforestation calculate Difference between 2015 & 2000!
                 if (selection == 'ForestPercent') {
-                    //console.log("FOREST !!");
                     val = endArea - startArea;}
                 else { val =  endArea;}
-
-
-                //console.log("selection: "+  deforestation + " ..  " + startArea + " .. " + endArea);
 
                 if (val != null) { //if the country codes are available!
                     dataSet.push({
                         country: cName,
                         value: val
                     });
-
                 }
+                
             });
 
-
-
+            drawCountries(dataSet, selection);
         });
-        console.log(dataSet);
-
-        drawCountries(dataSet, selection);
-
 
 
 
@@ -460,10 +428,7 @@
 
     function clicked(d) {
 
-
-
         var selection = d3.select(this);
-
 
         // Case: No Country is selected yet, the one that gets clicked => gets selected!
         if (oneCountrySelected == false && d.properties.name != selectedCountry){
@@ -476,10 +441,6 @@
             startPieChartRequest(countrycode);
 
 
-
-
-
-
             /*selection.style("fill", "url(#diagonal-stripe-1)")
              .style("opacity", 0.2)
              .attr("x", 0)
@@ -488,10 +449,6 @@
              .attr("width", 150);
              selection.classed("selected", true);*/
 
-
-
-
-            //sehr unperformant weil jedesmal über die csv drüber iteriert wird. besser wenn array direkt geschrieben wird ???
 
             writeCountryTradesToArray(d);
             viewTradesOfCountry();
@@ -505,17 +462,10 @@
             selectedCountry = "None";
             oneCountrySelected = false;
 
-
             changeInfoText(d, false);
             deselectCountry(selection);
             d3.selectAll("#pieA").remove();
             d3.selectAll("#pieB").remove();
-
-
-
-
-
-
 
         }
 
@@ -524,7 +474,6 @@
 
             if (formerSelection.classed("selected")) {
                 formerSelection.classed("selected", false);
-
 
             }
 
@@ -547,11 +496,13 @@
         }
     }
 
+    var token = "?token=9bb4facb6d23f48efbf424bb05c0c1ef1cf6f468393bc745d42179ac4aca5fee";
+    var requestSpeciesCountry = "country/getspecies/";
+    var url = "http://apiv3.iucnredlist.org/api/v3/";
+
 
     function startPieChartRequest(twoDigits)
     {
-
-
 
         var dataset = [
             {label: "LC", count: 0},
@@ -565,14 +516,11 @@
             {label: "NE", count: 0}];
 
 
-
         var radiusPie = 100;
         var colorPie = d3.scaleOrdinal(['#3288bd','#66c2a5','#abdda4','#e6f598','#fee08b','#e6f598','#fdae61','#f46d43','#d53e4f']);
         var pie = d3.pie()
             .sort(null)
             .value(function(d) { return d.count; });
-
-
 
         var pathPie = d3.arc()
             .outerRadius(radiusPie - 10)
@@ -619,7 +567,7 @@
                 }
             });
 
-            console.log(dataset[7].count)
+            console.log(dataset[7].count);
 
             var arc = g1.selectAll(".arc")
                 .data(pie(dataset))
@@ -640,15 +588,13 @@
 
         });
 
-
     }
 
 
 
     function writeCountryTradesToArray(d) {
 
-        var countByCountry = {},
-            locationByCountry = {};
+        var countByCountry = {};
 
         arcdataTrade.forEach(function (trade) {
             var importer = trade.importCountry,
@@ -729,9 +675,7 @@
 
 
     d3.csv("/data/animalTrade.csv", function(trades) {
-        var linksByExporter = {},
-            countByCountry = {},
-            locationByCountry = {};
+        var linksByExporter = {};
 
         trades.forEach(function (trade) {
             var importer = trade.Importer,
@@ -808,16 +752,15 @@
         }
 
 
-        var minx = miny = 1000
-            ,   maxx = maxy = -1000
+        var minx = miny = 1000,maxx = maxy = -1000;
         for (var i = 0; i < polygon.length; i++) {
-            var point = polygon[i]
-            var x = point[0]
-            var y = point[1]
+            var point = polygon[i];
+            var x = point[0];
+            var y = point[1];
 
-            if (x < minx) minx = x
-            else if (x > maxx) maxx = x
-            if (y < miny) miny = y
+            if (x < minx) minx = x;
+            else if (x > maxx) maxx = x;
+            if (y < miny) miny = y;
             else if (y > maxy) maxy = y
         }
 
