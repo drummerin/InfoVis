@@ -53,17 +53,54 @@
         #states .active {
             fill: orange;
         }
+
+        .selectablePs {
+            padding: 5px;
+            display: inline-block;
+            cursor: pointer;
+            margin: auto;
+            font-family: "Amatic SC","sans-serif";
+            font-weight: 700;
+            font-size: 24px;
+        }
+        .selectablePs:hover {
+            border-bottom: 1px dashed black;
+        }
+
+        .unselectablePs {
+            padding: 10px;
+            display: inline-block;
+            margin: auto;
+            font-family: "Amatic SC", "sans-serif";
+            font-weight: 700;
+            font-size: 24px;
+        }
+
+
+
     </style>
 
 </head>
 <body>
-<div id="content">
-    <div id="map" style="border:1px dotted blue; height: 500px; width: 850px; overflow: hidden; float: left; " ></div>
+<div id="all" style="display: flex; justify-content: center; min-width: 950px; ">
+        <img id="logo2" src="img/headerLogo.png" style="height: 150px; float:left; margin-top: -15px;">
+        <div id="selectables2" style="display: flex; margin-top: 20px; height: 100px; padding:10px; ">
+            <a class="selectablePs" id="PopDensity" onclick="setSelection('PopDensity')">Population Density</a><p class="unselectablePs">&nbsp;|&nbsp;</p>
+            <a class="selectablePs" id="Poverty" onclick="setSelection('Poverty')">Poverty</a><p class="unselectablePs">&nbsp;|&nbsp;</p>
+            <p class="selectablePs" id="Unemployment" onclick="setSelection('Unemployment')">Unemployment</p><p class="unselectablePs">&nbsp;|&nbsp;</p>
+            <p class="selectablePs" id="ForestPercent" style="border-bottom: 1px solid black;" onclick="setSelection('ForestPercent')">Deforestation</p><p class="unselectablePs">&nbsp;|&nbsp;</p>
+            <p class="selectablePs" id="Agricultural" onclick="setSelection('Agricultural')">Agriculture</p><p class="unselectablePs">&nbsp;|&nbsp;</p>
+            <p class="selectablePs" id="LifeExpect" onclick="setSelection('LifeExpect')">Life Expectancy</p>
+        </div>
 
-    <div id="info" style="border:1px dotted blue; width: 250px; height: 500px; float:left; background-color: white; margin-left: 10px;" >
-        <img id="logo" src="img/logo.png">
-        <p id="textCountryName">Endangered Species Information Visualisation</p>
-        <div id="chart"></div>
+    <div id="content" style="position: absolute; top: 150px;">
+        <div id="map" style="border:1px dotted blue; height: 500px; width: 850px; overflow: hidden; float: left; " ></div>
+
+        <div id="info" style="border:1px dotted blue; width: 250px; height: 500px; float:left; background-color: white; margin-left: 10px;" >
+            <img id="logo" src="img/logo.png">
+            <p id="textCountryName">Endangered Species Information Visualisation</p>
+            <div id="chart"></div>
+        </div>
     </div>
 </div>
 <!--div id="container1" style="border:1px dotted blue; width: 700px; height: 475px; position: relative;"></div-->
@@ -72,6 +109,7 @@
 <script src="https://d3js.org/d3-geo.v1.min.js"></script>
 <script src="https://d3js.org/d3-geo-projection.v2.min.js"></script>
 <script src="https://d3js.org/d3.v4.min.js"></script>
+<link href="https://fonts.googleapis.com/css?family=Amatic+SC:400,700" rel="stylesheet">
 
 
 <script>
@@ -91,7 +129,9 @@
     var countryCodeCenters = [];
     var countryCodes = [];
 
-    var forestData = [];
+
+
+    var selectedDataSet = 'ForestPercent';
 
 
     /*
@@ -164,8 +204,13 @@
 
     // ----------------- Countries -------------------------------
 
+    setSelection('ForestPercent');
+
+
+    function drawCountries( dataSet, selection ) {
+
     /*from http://colorbrewer2.org/#type=diverging&scheme=RdYlGn&n=9
-    * #d73027
+     * #d73027
      #f46d43
      #fdae61
      #fee08b
@@ -174,32 +219,62 @@
      #a6d96a
      #66bd63
      #1a9850
-    * */
-    var colorForest = d3.scaleOrdinal(["#d73027", "#f46d43", "#fdae61", "#fee08b", "#ffffbf", "#d9ef8b", "#a6d96a", "#66bd63", "#1a9850" ]);
-    //var colorForest = d3.scaleOrdinal(["#1a9850", "#66bd63", "#a6d96a", "#d9ef8b", "#ffffbf", "#fee08b", "#fdae61", "#f46d43", "#d73027" ]);
+     * */
+    var color;
+    console.log(dataSet);
+    // GREEN
+    if(selection === 'ForestPercent'){
+        color = d3.scaleOrdinal(["#006837", "#31a354", "#78c679", "#c2e699", "#ffffcc"]);
+        console.log("FORREST SELECTED");
+    }
+    //
+    else if(selection =='PopDensity'){
+        color = d3.scaleOrdinal(["#d73027", "#f46d43",  "#66bd63", "#1a9850"]);
+        console.log("POPDENS");
+    }
+    else if(selection ==  'Unemployment'){
+        color = d3.scaleOrdinal(["#d73027", "#f46d43",  "#66bd63", "#1a9850"]);
+    }
+    else if(selection == 'Agricultural'){
+        color = d3.scaleOrdinal(["#d73027", "#f46d43",  "#66bd63", "#1a9850"]);
+    }
+    else if(selection == 'LifeExpect'){
+        color = d3.scaleOrdinal(["#d73027", "#f46d43",  "#66bd63", "#1a9850"]);
+    }
+    else if(selection == 'Poverty'){
+        color = d3.scaleOrdinal(["#d73027", "#f46d43",  "#66bd63", "#1a9850"]);
+    }
+    //else {color = d3.scaleOrdinal(["#d73027", "#f46d43", "#fdae61"]);
+    //}
 
-    i=0;
-    d3.json("data/countries.geo.json", function(collection) {
+    d3.json("data/countries.geo.json", function (collection) {
         g.selectAll("path")
             .data(collection.features)
             .enter().append("path")
             .attr("d", path)
             .attr("class", "states")
-            .style("fill", function(d) {
-                console.log(forestData.length);
-                for(i=0; i<forestData.length; i++) {
-                    console.log(forestData[i].country + " .. " + d.properties.name);
-                    if (d.properties.name === forestData[i].country) {
-                        console.log(forestData[i].country + " .. " + forestData[i].deforestation);
-                        var deforestation = forestData[i].deforestation;
+            .style("fill", function (d) {
+                var colorN;
+                for (var i = 0; i < dataSet.length; i++) {
+                    if (d.id === dataSet[i].country) {
+                        //console.log("color country: " + d.id + dataSet[i].value);
+                        var data = dataSet[i].value;
+                        colorN = color(data);
+                        //console.log(colorN);
                         break;
                     }
+                    //if country cannot be found (= data not available), make grey!
+                    else {
+                        colorN = "#cccccc"
+                    }
+
                 }
-                return colorForest(deforestation);
-                })
+
+                return colorN;
+            })
 
             .on("click", clicked)
-            .on("mouseover", function (d){
+            .on("mouseover", function (d) {
                 tooltip.transition()
                     .duration(200)
                     .style("opacity", .9);
@@ -207,42 +282,24 @@
                     .style("left", (d3.event.pageX) + "px")
                     .style("top", (d3.event.pageY - 28) + "px");
             });
-        collection.features.forEach(function(coords) {
+        collection.features.forEach(function (coords) {
             var countrycode = getFromArrayByCountryName(countryCodes, coords.properties.name);
-            if (countrycode == null) countrycode = ({countryname: coords.properties.name, countrycode2: "not available"});;
-            countryCodeCenters.push({country: coords.properties.name, codetwo: countrycode.countrycode2, codethree: coords.id, center: getCenter(coords, coords.geometry.type).coordinates});
+            if (countrycode == null) countrycode = ({
+                countryname: coords.properties.name,
+                countrycode2: "not available"
+            });
+            ;
+            countryCodeCenters.push({
+                country: coords.properties.name,
+                codetwo: countrycode.countrycode2,
+                codethree: coords.id,
+                center: getCenter(coords, coords.geometry.type).coordinates
+            });
         });
 
 
     });
-
-    // ------------  Forest Data  -----------------------
-
-    d3.csv("/data/ForestPercent.csv", function (countries){
-        countries.forEach(function (country) {
-            var cName = country.Country,
-                startArea= country.y2015,
-                endArea = country["2000"];
-
-
-
-                var deforestation = startArea - endArea;
-            console.log("DEFORESTATION: "+  deforestation);
-
-                if (startArea != null && endArea != null) { //if the country codes are available!
-                    forestData.push({
-                        country: cName,
-                        deforestation: deforestation
-                    });
-
-                }
-                else {
-                    console.log("no year data for " + cName);
-                }
-            });
-            console.log(forestData); //shows if loading was successfull...
-
-    });
+}
 
 
 
@@ -270,7 +327,7 @@
 
 
 
-
+/*
 
         var radiusPie = 100;
 
@@ -293,7 +350,7 @@
         return d;
     }, function(error, data) {
         if (error) throw error;
-        console.log(data);
+        //console.log(data);
 
         var arc = g1.selectAll(".arc")
             .data(pie(data))
@@ -315,7 +372,7 @@
         console.log("show me pie chart?");
 
 
-
+*/
 
     // --------------- Zoom & Pan functionality -----------------------------
 
@@ -334,27 +391,104 @@
     }
 
 
+    // --------------- Select Option for country backgrounds -----------------------------
+
+    function setSelection (selection){
+        console.log(selection);
+
+        document.getElementById(selectedDataSet).style.borderBottom = null; // set former selection back to default
+        document.getElementById(selection).style.borderBottom = "1px solid"; // set new selection to selected style
+        selectedDataSet = selection;
+
+        d3.selectAll(".states").remove();
+        var dataSet = [];
+
+        console.log(selection);
+
+        var fileName = "/data/" + selection + ".csv";
+        console.log(fileName);
+        d3.csv(fileName, function (countries){
+            countries.forEach(function (country) {
+                var cName = country["Country Code"];
+                var startArea = country["2000"];
+
+                var endArea = null;
+
+
+                for (var j = 2015; j > 2005; --j) {
+                    if (country[j.toString()] != null && country[j.toString()] != "") {
+                        endArea = country[j.toString()];
+                        //console.log(cName + " .. END AREA" + endArea);
+                        break;
+                    }
+
+                }
+                var val;
+
+                if (selection == 'ForestPercent') {
+                    //console.log("FOREST !!");
+                    val = endArea - startArea;}
+                else { val =  endArea;}
+
+
+                //console.log("selection: "+  deforestation + " ..  " + startArea + " .. " + endArea);
+
+                if (val != null) { //if the country codes are available!
+                    dataSet.push({
+                        country: cName,
+                        value: val
+                    });
+
+                }
+            });
+
+
+
+        });
+        console.log(dataSet);
+
+        drawCountries(dataSet, selection);
+
+
+
+
+    }
+
 
 
     // --------------------- Click functionality -----------------------------
 
     function clicked(d) {
 
-        console.log(d);
+
 
         var selection = d3.select(this);
 
-        console.log(selection);
 
         // Case: No Country is selected yet, the one that gets clicked => gets selected!
         if (oneCountrySelected == false && d.properties.name != selectedCountry){
 
             selectedCountry = d.properties.name;
+            var countrycode = getFromArrayByCountryName(countryCodes, d.properties.name).countrycode2;
+
             oneCountrySelected = true;
             formerSelection = selection;
+            startPieChartRequest(countrycode);
 
-            selection.style("fill", "black");
-            selection.classed("selected", true);
+
+
+
+
+
+            /*selection.style("fill", "url(#diagonal-stripe-1)")
+             .style("opacity", 0.2)
+             .attr("x", 0)
+             .attr("y", 0)
+             .attr("height", 150)
+             .attr("width", 150);
+             selection.classed("selected", true);*/
+
+
 
 
             //sehr unperformant weil jedesmal über die csv drüber iteriert wird. besser wenn array direkt geschrieben wird ???
@@ -371,8 +505,18 @@
             selectedCountry = "None";
             oneCountrySelected = false;
 
+
             changeInfoText(d, false);
             deselectCountry(selection);
+            d3.selectAll("#pieA").remove();
+            d3.selectAll("#pieB").remove();
+
+
+
+
+
+
+
         }
 
         // Case: One Country is already selected, another one gets clicked => deselect it and select new one!
@@ -380,23 +524,126 @@
 
             if (formerSelection.classed("selected")) {
                 formerSelection.classed("selected", false);
-                formerSelection.style("fill", "LightGray");
+
+
             }
 
             selectedCountry = d.properties.name;
             formerSelection = selection;
             oneCountrySelected = true;
 
+            d3.selectAll("#pieA").remove();
+            d3.selectAll("#pieB").remove();
             deselectCountry(selection);
             writeCountryTradesToArray(d);
             viewTradesOfCountry();
             changeInfoText(d, true);
 
-            selection.style("fill", "black");
+            //selection.style("fill", "black");
             selection.classed("selected", true);
+            var countrycode = getFromArrayByCountryName(countryCodes, d.properties.name).countrycode2;
+            startPieChartRequest(countrycode);
 
         }
     }
+
+
+    function startPieChartRequest(twoDigits)
+    {
+
+
+
+        var dataset = [
+            {label: "LC", count: 0},
+            {label: "NT", count: 0},
+            {label: "VU", count: 0},
+            {label: "EN", count: 0},
+            {label: "CR", count: 0},
+            {label: "EW", count: 0},
+            {label: "EX", count: 0},
+            {label: "DD", count: 0},
+            {label: "NE", count: 0}];
+
+
+
+        var radiusPie = 100;
+        var colorPie = d3.scaleOrdinal(['#3288bd','#66c2a5','#abdda4','#e6f598','#fee08b','#e6f598','#fdae61','#f46d43','#d53e4f']);
+        var pie = d3.pie()
+            .sort(null)
+            .value(function(d) { return d.count; });
+
+
+
+        var pathPie = d3.arc()
+            .outerRadius(radiusPie - 10)
+            .innerRadius(0);
+
+
+        var label = d3.arc()
+            .outerRadius(radiusPie - 40)
+            .innerRadius(radiusPie - 40);
+
+        d3.json(url+requestSpeciesCountry+twoDigits+token, function(d) {
+
+            d.result.forEach(function (animal) {
+                switch(animal.category) {
+                    case "LC":
+                        dataset[0].count += 1;
+                        break;
+                    case "NT":
+                        dataset[1].count += 1;
+                        break;
+                    case "VU":
+                        dataset[2].count += 1;
+                        break;
+                    case "EN":
+                        dataset[3].count += 1;
+                        break;
+                    case "CR":
+                        dataset[4].count += 1;
+                        break;
+                    case "EW":
+                        dataset[5].count += 1;
+                        break;
+                    case "EX":
+                        dataset[6].count += 1;
+                        break;
+                    case "DD":
+                        dataset[7].count += 1;
+                        break;
+                    case "NE":
+                        dataset[8].count += 1;
+                        break;
+                    default:
+                        break;
+                }
+            });
+
+            console.log(dataset[7].count)
+
+            var arc = g1.selectAll(".arc")
+                .data(pie(dataset))
+                .enter().append("g")
+                .attr("id", "pieA")
+                .attr("class", "arc").attr('transform', 'translate(' + radiusPie +
+                    ',' + radiusPie + ')');
+
+            arc.append("path")
+                .attr("d", pathPie)
+                .attr("id", "pieB")
+                .attr("fill", function(d) { console.log(d); return colorPie(d.data.count); });
+
+            arc.append("text")
+                .attr("transform", function(d) { return "translate(" + label.centroid(d) + ")"; })
+                .attr("dy", "0.35em")
+                .text(function(d) { return d.data.label; });
+
+        });
+
+
+    }
+
+
 
     function writeCountryTradesToArray(d) {
 
