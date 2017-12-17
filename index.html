@@ -292,6 +292,7 @@
                 center: getCenter(coords, coords.geometry.type).coordinates
             });
         });
+        viewTradesOfCountry();
 
 
     });
@@ -376,7 +377,9 @@
         document.getElementById(selection).style.borderBottom = "1px solid"; // set new selection to selected style
         selectedDataSet = selection;
 
-        d3.selectAll(".states").remove();
+        svg.selectAll(".states").remove();
+        g.selectAll("path.arcsTrade").remove();
+        svg.selectAll()
         var dataSet = [];
 
         console.log(selection);
@@ -412,10 +415,11 @@
                         value: val
                     });
                 }
-                
+
             });
 
             drawCountries(dataSet, selection);
+
         });
 
 
@@ -438,6 +442,8 @@
 
             oneCountrySelected = true;
             formerSelection = selection;
+
+
             startPieChartRequest(countrycode);
 
 
@@ -646,7 +652,7 @@
         arcdataTradeSelected = [];
 
 
-        var test = g.selectAll("path.arcsTrade").data(arcdataTradeSelected, function (d) {
+        /*var test = g.selectAll("path.arcsTrade").data(arcdataTradeSelected, function (d) {
             return d.id;
         });
 
@@ -657,7 +663,9 @@
                 return lngLatToArc(d, 'exportLocation', 'importLocation', 25); // A bend of 5 looks nice and subtle, but this will depend on the length of your arcs and the visual look your visualization requires. Higher number equals less bend.
             });
 
-        test.exit().remove();
+        test.exit().remove();*/
+
+        g.selectAll("path.arcsTrade").remove();
 
         selection.classed("selected", false);
         selection.style("fill", "LightGray");
