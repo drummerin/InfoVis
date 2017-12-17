@@ -10,13 +10,11 @@
             stroke: #fff;
         }
 
-
         circle {
             fill: steelblue;
             fill-opacity: .8;
             stroke: #fff;
         }
-
 
         .tooltip {
             position: absolute;
@@ -43,12 +41,10 @@
             stroke: #fff;
         }
 
-
         .background {
             fill: none;
             pointer-events: all;
         }
-
 
         #states .active {
             fill: orange;
@@ -59,10 +55,11 @@
             display: inline-block;
             cursor: pointer;
             margin: auto;
-            font-family: "Amatic SC","sans-serif";
+            font-family: "Amatic SC", "sans-serif";
             font-weight: 700;
             font-size: 24px;
         }
+
         .selectablePs:hover {
             border-bottom: 1px dashed black;
         }
@@ -77,26 +74,33 @@
         }
 
 
-
     </style>
 
 </head>
 <body>
 <div id="all" style="display: flex; justify-content: center; min-width: 950px; ">
-        <img id="logo2" src="img/headerLogo.png" style="height: 150px; float:left; margin-top: -15px;">
-        <div id="selectables2" style="display: flex; margin-top: 20px; height: 100px; padding:10px; ">
-            <a class="selectablePs" id="PopDensity" onclick="setSelection('PopDensity')">Population Density</a><p class="unselectablePs">&nbsp;|&nbsp;</p>
-            <a class="selectablePs" id="Poverty" onclick="setSelection('Poverty')">Poverty</a><p class="unselectablePs">&nbsp;|&nbsp;</p>
-            <p class="selectablePs" id="Unemployment" onclick="setSelection('Unemployment')">Unemployment</p><p class="unselectablePs">&nbsp;|&nbsp;</p>
-            <p class="selectablePs" id="ForestPercent" style="border-bottom: 1px solid black;" onclick="setSelection('ForestPercent')">Deforestation</p><p class="unselectablePs">&nbsp;|&nbsp;</p>
-            <p class="selectablePs" id="Agricultural" onclick="setSelection('Agricultural')">Agriculture</p><p class="unselectablePs">&nbsp;|&nbsp;</p>
-            <p class="selectablePs" id="LifeExpect" onclick="setSelection('LifeExpect')">Life Expectancy</p>
-        </div>
+    <img id="logo2" src="img/headerLogo.png" style="height: 150px; float:left; margin-top: -15px;">
+    <div id="selectables2" style="display: flex; margin-top: 20px; height: 100px; padding:10px; ">
+        <a class="selectablePs" id="PopDensity" onclick="setSelection('PopDensity')">Population Density</a>
+        <p class="unselectablePs">&nbsp;|&nbsp;</p>
+        <a class="selectablePs" id="Poverty" onclick="setSelection('Poverty')">Poverty</a>
+        <p class="unselectablePs">&nbsp;|&nbsp;</p>
+        <p class="selectablePs" id="Unemployment" onclick="setSelection('Unemployment')">Unemployment</p>
+        <p class="unselectablePs">&nbsp;|&nbsp;</p>
+        <p class="selectablePs" id="ForestPercent" style="border-bottom: 1px solid black;"
+           onclick="setSelection('ForestPercent')">Deforestation</p>
+        <p class="unselectablePs">&nbsp;|&nbsp;</p>
+        <p class="selectablePs" id="Agricultural" onclick="setSelection('Agricultural')">Agriculture</p>
+        <p class="unselectablePs">&nbsp;|&nbsp;</p>
+        <p class="selectablePs" id="LifeExpect" onclick="setSelection('LifeExpect')">Life Expectancy</p>
+    </div>
 
     <div id="content" style="position: absolute; top: 150px;">
-        <div id="map" style="border:1px dotted blue; height: 500px; width: 850px; overflow: hidden; float: left; " ></div>
+        <div id="map"
+             style="border:1px dotted blue; height: 500px; width: 850px; overflow: hidden; float: left; "></div>
 
-        <div id="info" style="border:1px dotted blue; width: 250px; height: 500px; float:left; background-color: white; margin-left: 10px;" >
+        <div id="info"
+             style="border:1px dotted blue; width: 250px; height: 500px; float:left; background-color: white; margin-left: 10px;">
             <img id="logo" src="img/logo.png">
             <p id="textCountryName">Endangered Species Information Visualisation</p>
             <div id="chart"></div>
@@ -110,6 +114,13 @@
 <script src="https://d3js.org/d3-geo-projection.v2.min.js"></script>
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <link href="https://fonts.googleapis.com/css?family=Amatic+SC:400,700" rel="stylesheet">
+<svg height="10" width="10" xmlns="http://www.w3.org/2000/svg" version="1.1">
+    <defs>
+        <pattern id="hash4_4" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
+            <rect id="patternBack" width="4" height="8" transform="translate(0,0)" fill="orange"></rect>
+        </pattern>
+    </defs>
+</svg>
 
 
 <script>
@@ -130,41 +141,42 @@
     var countryCodes = [];
 
 
-
     var selectedDataSet = 'ForestPercent';
+    var dataSet = [];
 
 
     /*
-    * lc = least concern
-    * nt = near threatened
-    * LR/cd = Lower Risk (conservation dependent)
-    * LR/nt = Lower Risk (near threatened)
-    * LR/lc = Lower Risk (least concern)
-    * vu = vulnerable
-    * en = endangered
-    * cr = critically endangered
-    * ew = extinct in the wild
-    * ex = extinct
-    * dd = data deficient
-    * ne = not evaluated
-    *
-    * */
+     * lc = least concern
+     * nt = near threatened
+     * LR/cd = Lower Risk (conservation dependent)
+     * LR/nt = Lower Risk (near threatened)
+     * LR/lc = Lower Risk (least concern)
+     * vu = vulnerable
+     * en = endangered
+     * cr = critically endangered
+     * ew = extinct in the wild
+     * ex = extinct
+     * dd = data deficient
+     * ne = not evaluated
+     *
+     * */
 
     var oneCountrySelected = false;
     var selectedCountry = "None";
     var formerSelection;
+    var originalPatternStyle;
 
     var path = d3.geoPath()
         .projection(projection);
 
     var zoom = d3.zoom()
     //.translateTo([defaultTranslateX, defaultTranslateY])
-        //.scaleExtent([1, 8])
+    //.scaleExtent([1, 8])
         .on("zoom", zoomed);
 
     var svg = d3.select("#map").append("svg")
         .attr("width", width)
-        .attr('transform', 'translate('+-50+')')
+        .attr('transform', 'translate(' + -50 + ')')
         .attr("height", height);
 
     var svgPie = d3.select("#info").append("svg")
@@ -176,7 +188,7 @@
         .attr("width", width)
         .attr("height", height)
         .on("click", reset)
-        .on("mouseover", function (d){
+        .on("mouseover", function (d) {
             tooltip.transition()
                 .duration(200)
                 .style("opacity", 0);
@@ -184,7 +196,7 @@
         });
 
     var states = svg.append("g")
-        .attr("id", "states") ;
+        .attr("id", "states");
 
     var g = svg.append("g"); // states, trades
     var g1 = svgPie.append("g"); // Pie Chart
@@ -194,80 +206,30 @@
         .call(zoom); // delete this line to disable free zooming
 
     var arcsTrade = g.append("g")
-        .attr("id","arcsTrade");
+        .attr("id", "arcsTrade");
 
     var tooltip = d3.select("body").append("div")
         .attr("class", "tooltip")
         .style("opacity", 0);
 
 
-
     // ----------------- Countries -------------------------------
 
     setSelection('ForestPercent');
 
-    function drawCountries( dataSet, selection ) {
-
-    //from http://colorbrewer2.org/#type=diverging&scheme=RdYlGn&n=9
-    var color;
-    // GREEN
-    /*if(selection === 'ForestPercent'){
-        color = d3.scaleOrdinal(["#006837", "#31a354", "#78c679", "#c2e699", "#ffffcc"]);
-    }
-    else if(selection =='PopDensity'){
-        color = d3.scaleOrdinal(["#d73027", "#f46d43",  "#66bd63", "#1a9850"]);
-        console.log("POPDENS");
-    }
-    else if(selection ==  'Unemployment'){
-        color = d3.scaleOrdinal(["#d73027", "#f46d43",  "#66bd63", "#1a9850"]);
-    }
-    else if(selection == 'Agricultural'){
-        color = d3.scaleOrdinal(["#d73027", "#f46d43",  "#66bd63", "#1a9850"]);
-    }
-    else if(selection == 'LifeExpect'){
-        color = d3.scaleOrdinal(["#d73027", "#f46d43",  "#66bd63", "#1a9850"]);
-    }
-    else if(selection == 'Poverty'){
-        color = d3.scaleOrdinal(["#d73027", "#f46d43",  "#66bd63", "#1a9850"]);
-    }
-    else {
-        color = d3.scaleOrdinal(["#d73027", "#f46d43", "#fdae61"]);
-    }*/
-
     d3.json("data/countries.geo.json", function (collection) {
+        collectionX = collection;
+        console.log(collection);
+        console.log(collectionX);
         g.selectAll("path")
             .data(collection.features)
             .enter().append("path")
             .attr("d", path)
-            .attr("class", "states")
-            .style("fill", function (d) {
-                var colorN;
-                for (var i = 0; i < dataSet.length; i++) {
-                    if (d.id === dataSet[i].country) {
-                        var data = dataSet[i].value;
-                        if (data < 20) {
-                            colorN = "#004400"
-                        }
-                        else if (data < 40 && data > 20 ) {
-                            colorN = "#FF4400"
-                        }
-                        else if (data < 60 && data > 40 ) {
-                            colorN = "#FF44FF"
-                        }
-                        else if (data > 60 ) {
-                            colorN = "#0044FF"
-                        }
-                        break;
-                    }
-                    //if country cannot be found (= data not available), make grey!
-                    else {
-                        colorN = "#cccccc"
-                    }
-
-                }
-
-                return colorN;
+            .attr("id", function (d) {
+                return d.id;
             })
+            .attr("class", "states")
+            .style("fill", "gray")
 
             .on("click", clicked)
             .on("mouseover", function (d) {
@@ -278,6 +240,7 @@
                     .style("left", (d3.event.pageX) + "px")
                     .style("top", (d3.event.pageY - 28) + "px");
             });
+        drawCountries();
         collection.features.forEach(function (coords) {
             var countrycode = getFromArrayByCountryName(countryCodes, coords.properties.name);
             if (countrycode == null) countrycode = ({
@@ -291,65 +254,56 @@
                 codethree: coords.id,
                 center: getCenter(coords, coords.geometry.type).coordinates
             });
+
         });
+    });
+
+    function drawCountries() {
+
+        var rainbow = d3.scaleSequential(d3.interpolateRainbow);
+
+        var range_low = d3.min(dataSet, function (d) {
+                return d.value
+            }),
+            range_high = d3.max(dataSet, function (d) {
+                return d.value
+            });
+
+        var col_range_low = "#009933",
+            col_range_high = "#FF0000";
+
+        var color = d3.scaleLinear()
+            .range([col_range_low, col_range_high])
+            .domain([range_low, range_high])
+            .interpolate(d3.interpolateLab);
+
+        g.selectAll("path")
+            .style("fill", function (d) {
+                var colorN;
+                for (var i = 0; i < dataSet.length; i++) {
+                    if (d.id === dataSet[i].country) {
+                        var data = dataSet[i].value;
+                        colorN = color(dataSet[i].value);
+                        break;
+                    }
+                    //if country cannot be found (= data not available), make grey!
+                    else {
+                        colorN = "#cccccc"
+                    }
+                }
+
+                return colorN;
+            });
+
+        // Show pattern also if Category changes
+        if (formerSelection != null) {
+            drawPattern(formerSelection);
+        }
+
         viewTradesOfCountry();
 
+    }
 
-    });
-}
-
-
-
-    // ---------------------- Pie Charts ----------------------------------
-
-
-
-/*
-
-        var radiusPie = 100;
-
-
-    var colorPie = d3.scaleOrdinal(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
-    var pie = d3.pie()
-        .sort(null)
-        .value(function(d) { return d.value; });
-
-    var pathPie = d3.arc()
-        .outerRadius(radiusPie - 10)
-        .innerRadius(0);
-
-    var label = d3.arc()
-        .outerRadius(radiusPie - 40)
-        .innerRadius(radiusPie - 40);
-
-
-    d3.csv("/data/speciesGlobal.csv", function(d) {
-        return d;
-    }, function(error, data) {
-        if (error) throw error;
-        //console.log(data);
-
-        var arc = g1.selectAll(".arc")
-            .data(pie(data))
-            .enter().append("g")
-            .attr("class", "arc").attr('transform', 'translate(' + radiusPie +
-                ',' + radiusPie + ')');
-
-        arc.append("path")
-            .attr("d", pathPie)
-            .attr("fill", function(d) { return colorPie(d.data.value); });
-
-        arc.append("text")
-            .attr("transform", function(d) { return "translate(" + label.centroid(d) + ")"; })
-            .attr("dy", "0.35em")
-            .text(function(d) { return d.data.status; });
-    });
-
-
-        console.log("show me pie chart?");
-
-
-*/
 
     // --------------- Zoom & Pan functionality -----------------------------
 
@@ -364,35 +318,33 @@
 
         svg.transition()
             .duration(750)
-            .call( zoom.transform, d3.zoomIdentity );
+            .call(zoom.transform, d3.zoomIdentity);
     }
 
 
     // --------------- Select Option for country backgrounds -----------------------------
 
-    function setSelection (selection){
+    function setSelection(selection) {
         console.log(selection);
 
         document.getElementById(selectedDataSet).style.borderBottom = null; // set former selection back to default
         document.getElementById(selection).style.borderBottom = "1px solid"; // set new selection to selected style
         selectedDataSet = selection;
 
-        svg.selectAll(".states").remove();
+        //empty dataset to store new Data in it.
+        dataSet = [];
         g.selectAll("path.arcsTrade").remove();
-        svg.selectAll()
-        var dataSet = [];
 
         console.log(selection);
 
         var fileName = "/data/" + selection + ".csv";
         console.log(fileName);
-        d3.csv(fileName, function (countries){
+        d3.csv(fileName, function (countries) {
             countries.forEach(function (country) {
                 var cName = country["Country Code"];
                 var startArea = country["2000"];
 
                 var endArea = null;
-
 
                 for (var j = 2015; j > 2005; --j) {
                     if (country[j.toString()] != null && country[j.toString()] != "") {
@@ -406,8 +358,11 @@
 
                 // For Deforestation calculate Difference between 2015 & 2000!
                 if (selection == 'ForestPercent') {
-                    val = endArea - startArea;}
-                else { val =  endArea;}
+                    val = endArea - startArea;
+                }
+                else {
+                    val = endArea;
+                }
 
                 if (val != null) { //if the country codes are available!
                     dataSet.push({
@@ -418,14 +373,11 @@
 
             });
 
-            drawCountries(dataSet, selection);
+            drawCountries();
 
         });
 
-
-
     }
-
 
 
     // --------------------- Click functionality -----------------------------
@@ -433,43 +385,36 @@
     function clicked(d) {
 
         var selection = d3.select(this);
+        var countrycode = getFromArrayByCountryName(countryCodes, d.properties.name).countrycode2;
 
         // Case: No Country is selected yet, the one that gets clicked => gets selected!
-        if (oneCountrySelected == false && d.properties.name != selectedCountry){
+        if (oneCountrySelected == false && d.properties.name != selectedCountry) {
 
             selectedCountry = d.properties.name;
-            var countrycode = getFromArrayByCountryName(countryCodes, d.properties.name).countrycode2;
+            formerSelection = selection;
+            originalPatternStyle = selection.style("fill");
+
+            drawPattern(selection);
 
             oneCountrySelected = true;
-            formerSelection = selection;
-
 
             startPieChartRequest(countrycode);
-
-
-            /*selection.style("fill", "url(#diagonal-stripe-1)")
-             .style("opacity", 0.2)
-             .attr("x", 0)
-             .attr("y", 0)
-             .attr("height", 150)
-             .attr("width", 150);
-             selection.classed("selected", true);*/
-
-
             writeCountryTradesToArray(d);
             viewTradesOfCountry();
-
             changeInfoText(d, true);
         }
 
         // Case: One Country is already selected, this one gets clicked again => deselect it!
         else if (oneCountrySelected == true && d.properties.name == selectedCountry) {
 
+            deselectCountry(selection);
+
             selectedCountry = "None";
             oneCountrySelected = false;
+            selection.classed("selected", false);
 
             changeInfoText(d, false);
-            deselectCountry(selection);
+
             d3.selectAll("#pieA").remove();
             d3.selectAll("#pieB").remove();
 
@@ -478,37 +423,59 @@
         // Case: One Country is already selected, another one gets clicked => deselect it and select new one!
         else if (oneCountrySelected == true && d.properties.name != selectedCountry) {
 
-            if (formerSelection.classed("selected")) {
-                formerSelection.classed("selected", false);
-
-            }
-
-            selectedCountry = d.properties.name;
+            deselectCountry(selection);
             formerSelection = selection;
+            originalPatternStyle = formerSelection.style("fill");
+            selectedCountry = d.properties.name;
+
             oneCountrySelected = true;
 
             d3.selectAll("#pieA").remove();
             d3.selectAll("#pieB").remove();
-            deselectCountry(selection);
+
             writeCountryTradesToArray(d);
             viewTradesOfCountry();
             changeInfoText(d, true);
 
-            //selection.style("fill", "black");
-            selection.classed("selected", true);
-            var countrycode = getFromArrayByCountryName(countryCodes, d.properties.name).countrycode2;
+            drawPattern(selection);
+
             startPieChartRequest(countrycode);
 
         }
     }
+
+    function deselectCountry(selection) {
+
+        //empty Trade Data Array !
+        arcdataTradeSelected = [];
+
+        if (formerSelection.classed("selected")) {
+            formerSelection.classed("selected", false);
+        }
+        formerSelection.style("fill", originalPatternStyle);
+
+        g.selectAll("path.arcsTrade").remove();
+        selection.classed("selected", false);
+
+        originalPatternStyle = formerSelection.style("fill");
+    }
+
+    function drawPattern(selection) {
+        document.getElementById("patternBack").style.fill = selection.style("fill");
+        selection.style("fill", "url(#hash4_4)");
+        selection.classed("selected", true);
+        console.log("sth happening ? ");
+    }
+
+
+    // --------------------- PIE CHARTS  -----------------------------
 
     var token = "?token=9bb4facb6d23f48efbf424bb05c0c1ef1cf6f468393bc745d42179ac4aca5fee";
     var requestSpeciesCountry = "country/getspecies/";
     var url = "http://apiv3.iucnredlist.org/api/v3/";
 
 
-    function startPieChartRequest(twoDigits)
-    {
+    function startPieChartRequest(twoDigits) {
 
         var dataset = [
             {label: "LC", count: 0},
@@ -523,10 +490,12 @@
 
 
         var radiusPie = 100;
-        var colorPie = d3.scaleOrdinal(['#3288bd','#66c2a5','#abdda4','#e6f598','#fee08b','#e6f598','#fdae61','#f46d43','#d53e4f']);
+        var colorPie = d3.scaleOrdinal(['#3288bd', '#66c2a5', '#abdda4', '#e6f598', '#fee08b', '#e6f598', '#fdae61', '#f46d43', '#d53e4f']);
         var pie = d3.pie()
             .sort(null)
-            .value(function(d) { return d.count; });
+            .value(function (d) {
+                return d.count;
+            });
 
         var pathPie = d3.arc()
             .outerRadius(radiusPie - 10)
@@ -537,10 +506,10 @@
             .outerRadius(radiusPie - 40)
             .innerRadius(radiusPie - 40);
 
-        d3.json(url+requestSpeciesCountry+twoDigits+token, function(d) {
+        d3.json(url + requestSpeciesCountry + twoDigits + token, function (d) {
 
             d.result.forEach(function (animal) {
-                switch(animal.category) {
+                switch (animal.category) {
                     case "LC":
                         dataset[0].count += 1;
                         break;
@@ -573,8 +542,6 @@
                 }
             });
 
-            console.log(dataset[7].count);
-
             var arc = g1.selectAll(".arc")
                 .data(pie(dataset))
                 .enter().append("g")
@@ -585,17 +552,22 @@
             arc.append("path")
                 .attr("d", pathPie)
                 .attr("id", "pieB")
-                .attr("fill", function(d) { console.log(d); return colorPie(d.data.count); });
+                .attr("fill", function (d) { //console.log(d);
+                    return colorPie(d.data.count);
+                });
 
             arc.append("text")
-                .attr("transform", function(d) { return "translate(" + label.centroid(d) + ")"; })
+                .attr("transform", function (d) {
+                    return "translate(" + label.centroid(d) + ")";
+                })
                 .attr("dy", "0.35em")
-                .text(function(d) { return d.data.label; });
+                .text(function (d) {
+                    return d.data.label;
+                });
 
         });
 
     }
-
 
 
     function writeCountryTradesToArray(d) {
@@ -634,11 +606,11 @@
             .style("fill", "none")
             .style("stroke-width", function (d) {
 
-                if(d.importPerCountry == null || d.importPerCountry <= 5) return 1;
-                else if(d.importPerCountry > 5 || d.importPerCountry <= 10) return 2;
-                else if(d.importPerCountry > 10 || d.importPerCountry <= 25) return 3;
-                else if(d.importPerCountry > 25 || d.importPerCountry <= 50) return 5;
-                else if(d.importPerCountry > 50 ) return 10;
+                if (d.importPerCountry == null || d.importPerCountry <= 5) return 1;
+                else if (d.importPerCountry > 5 || d.importPerCountry <= 10) return 2;
+                else if (d.importPerCountry > 10 || d.importPerCountry <= 25) return 3;
+                else if (d.importPerCountry > 25 || d.importPerCountry <= 50) return 5;
+                else if (d.importPerCountry > 50) return 10;
                 // A bend of 5 looks nice and subtle, but this will depend on the length of your arcs and the visual look your visualization requires. Higher number equals less bend.
             })
             .attr('d', function (d) {
@@ -646,43 +618,20 @@
             });
     }
 
-    function deselectCountry(selection) {
 
-        //empty Trade Data Array !
-        arcdataTradeSelected = [];
-
-
-        /*var test = g.selectAll("path.arcsTrade").data(arcdataTradeSelected, function (d) {
-            return d.id;
-        });
-
-        //path needs to be on update+enter to delete/remove arcs
-        test.enter()
-            .append("path")
-            .attr('d', function (d) {
-                return lngLatToArc(d, 'exportLocation', 'importLocation', 25); // A bend of 5 looks nice and subtle, but this will depend on the length of your arcs and the visual look your visualization requires. Higher number equals less bend.
-            });
-
-        test.exit().remove();*/
-
-        g.selectAll("path.arcsTrade").remove();
-
-        selection.classed("selected", false);
-        selection.style("fill", "LightGray");
-    }
-
-    function changeInfoText (d, selectedBool) {
-        if(selectedBool == true){
-        document.getElementById("textCountryName").innerHTML = d.properties.name;}
+    function changeInfoText(d, selectedBool) {
+        if (selectedBool == true) {
+            document.getElementById("textCountryName").innerHTML = d.properties.name;
+        }
         else {
-        document.getElementById("textCountryName").innerHTML = "Select a country to see the trades";
+            document.getElementById("textCountryName").innerHTML = "Select a country to see the trades";
         }
     }
 
     // ----------------------------- DATA (still airport)-----------------------------------------
 
 
-    d3.csv("/data/animalTrade.csv", function(trades) {
+    d3.csv("/data/animalTrade.csv", function (trades) {
         var linksByExporter = {};
 
         trades.forEach(function (trade) {
@@ -696,12 +645,12 @@
             var exportInfo = getFromArrayByTwoDigits(countryCodeCenters, exporter);
             var importInfo = getFromArrayByTwoDigits(countryCodeCenters, importer);
             if (exportInfo != null && importInfo != null) { //if the country codes are available!
-                    arcdataTrade.push({
-                        exportCountry: exportInfo.country, importCountry: importInfo.country,
-                        exportLocation: exportInfo.center,
-                        importLocation: importInfo.center,
-                        importQuant: quantityImp
-                    });
+                arcdataTrade.push({
+                    exportCountry: exportInfo.country, importCountry: importInfo.country,
+                    exportLocation: exportInfo.center,
+                    importLocation: importInfo.center,
+                    importQuant: quantityImp
+                });
 
             }
         });
@@ -710,7 +659,7 @@
     });
 
     /*rename of Russian Federation -> Russia
-    Congo, the Democratic Republic of the -> Democratic Republic of the Congo
+     Congo, the Democratic Republic of the -> Democratic Republic of the Congo
      United States -> United States of America
      "Bolivia, Plurinational State of -> Bolivia
      Venezuela, Bolivarian Republic of -> Venezuela
@@ -722,16 +671,15 @@
      Korea, Republic of -> South Korea
      Korea, Democratic People's Republic of -> North Korea
      Taiwan, Province of China -> Taiwan
-    */
-    d3.csv("/data/cc2digit.csv", function(codes) {
+     */
+    d3.csv("/data/cc2digit.csv", function (codes) {
         codes.forEach(function (code) {
             countryCodes.push({countryname: code.Name, countrycode2: code.Code});
         });
     });
 
 
-
-        // ----------------------------- Functions -----------------------------------------
+    // ----------------------------- Functions -----------------------------------------
 
     function getCenter(polygon, geometryType) {
         if ('geometry' in polygon) polygon = polygon.geometry
@@ -747,20 +695,20 @@
                 var longestArray = 0;
                 var longestArrayLength = 0;
                 polygon.coordinates.forEach(function (arrays) {
-                    arrays.forEach(function (arraySecond){
+                    arrays.forEach(function (arraySecond) {
                         counter = counter + 1;
-                        if(arraySecond.length > longestArrayLength){
+                        if (arraySecond.length > longestArrayLength) {
                             longestArrayLength = arraySecond.length;
                             longestArray = counter;
                         }
                     });
                 });
-                polygon = polygon.coordinates[longestArray-1][0]
+                polygon = polygon.coordinates[longestArray - 1][0]
             }
         }
 
 
-        var minx = miny = 1000,maxx = maxy = -1000;
+        var minx = miny = 1000, maxx = maxy = -1000;
         for (var i = 0; i < polygon.length; i++) {
             var point = polygon[i];
             var x = point[0];
@@ -784,27 +732,28 @@
     function getFromArrayByCountryName(arr, value) {
 
         var result = [];
-        arr.forEach(function(o){if (o.countryname === value) result.push(o);} );
-        return result? result[0] : null; // or undefined
+        arr.forEach(function (o) {
+            if (o.countryname === value) result.push(o);
+        });
+        return result ? result[0] : null; // or undefined
     }
 
     function getFromArrayByTwoDigits(arr, value) {
 
         var result = [];
-        arr.forEach(function(o){if (o.codetwo === value) result.push(o);} );
-        return result? result[0] : null; // or undefined
+        arr.forEach(function (o) {
+            if (o.codetwo === value) result.push(o);
+        });
+        return result ? result[0] : null; // or undefined
 
     }
-
-
-
 
 
     // ----------------------------- Center of Country -----------------------------------------
 
     // This function takes an object, the key names where it will find an array of lng/lat pairs, e.g. `[-74, 40]`
     // And a bend parameter for how much bend you want in your arcs, the higher the number, the less bend.
-    function lngLatToArc(d, sourceName, targetName, bend){
+    function lngLatToArc(d, sourceName, targetName, bend) {
         // If no bend is supplied, then do the plain square root
         //console.log(d);
         bend = bend || 1;
@@ -815,8 +764,8 @@
             targetLngLat = d[targetName];
 
         if (targetLngLat && sourceLngLat) {
-            var sourceXY = projection( sourceLngLat ),
-                targetXY = projection( targetLngLat );
+            var sourceXY = projection(sourceLngLat),
+                targetXY = projection(targetLngLat);
 
             // Uncomment this for testing, useful to see if you have any null lng/lat values
             // if (!targetXY) console.log(d, targetLngLat, targetXY)
@@ -828,7 +777,7 @@
 
             var dx = targetX - sourceX,
                 dy = targetY - sourceY,
-                dr = Math.sqrt(dx * dx + dy * dy)*bend;
+                dr = Math.sqrt(dx * dx + dy * dy) * bend;
 
             // To avoid a whirlpool effect, make the bend direction consistent regardless of whether the source is east or west of the target
             var west_of_source = (targetX - sourceX) < 0;
