@@ -5,25 +5,24 @@
     <link rel="shortcut icon" type="image/png" href="http://localhost:8000/assets/favicon.png">
     <style>
 
+        body {
+            background-color: #faf8f3;
+        }
         .states {
             fill: #ccc;
-            stroke: #fff;
-        }
-
-        circle {
-            fill: steelblue;
-            fill-opacity: .8;
             stroke: #fff;
         }
 
         .tooltip {
             position: absolute;
             text-align: center;
-            width: 60px;
+            width: auto;
             height: auto;
-            padding: 2px;
-            font: 12px sans-serif;
-            background: lightsteelblue;
+            padding: 5px;
+            font-family: "Roboto Condensed", "sans-serif";
+            font-weight: 400;
+            font-size: 14px;
+            background: #e0e2e2;
             border: 0px;
             border-radius: 8px;
             pointer-events: none;
@@ -33,21 +32,14 @@
             Pie Charts
         */
         .arc text {
-            font: 10px sans-serif;
+            font-family: "Roboto Condensed", "sans-serif";
+            font-weight: 400;
+            font-size: 12px;
             text-anchor: middle;
         }
 
         .arc path {
             stroke: #fff;
-        }
-
-        .background {
-            fill: none;
-            pointer-events: all;
-        }
-
-        #states .active {
-            fill: orange;
         }
 
         .selectablePs {
@@ -72,6 +64,76 @@
             font-weight: 700;
             font-size: 24px;
         }
+
+        .smallText {
+            display: inline;
+            font-family: "Roboto Condensed", "sans-serif";
+            font-weight: 400;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        .bigText {
+            display: inline;
+            font-family: "Roboto Condensed", "sans-serif";
+            font-weight: 700;
+            font-size: 20px;
+            line-height: 1.5;
+        }
+
+        #NunmbersPerCountry {
+            visibility: hidden;
+        }
+
+        a:link {
+            color: black;
+            text-decoration: none;
+        }
+
+        a:hover {
+            color: grey;
+            text-decoration: underline;
+        }
+
+        a:visited {
+            color: black;
+            text-decoration: none;
+        }
+
+
+
+        #chart {
+            width: 150px;
+            height: 150px;
+            float: right;
+        }
+
+        #info {
+            padding: 10px;
+        }
+
+        #nextToChart {
+            float: left;
+            width: 110px;
+            height: auto;
+        }
+
+
+
+        .overlay {
+            z-index: 3;
+            position: absolute;
+        }
+
+
+        .schablone {
+            height: 90px;
+            width: auto;
+        }
+
+
+
+
 
 
     </style>
@@ -100,10 +162,47 @@
              style="border:1px dotted blue; height: 500px; width: 850px; overflow: hidden; float: left; "></div>
 
         <div id="info"
-             style="border:1px dotted blue; width: 250px; height: 500px; float:left; background-color: white; margin-left: 10px;">
-            <img id="logo" src="img/logo.png">
-            <p id="textCountryName">Endangered Species Information Visualisation</p>
-            <div id="chart"></div>
+             style="border:1px dotted blue; width: 260px; height: 500px; float:left; background-color: white; margin-left: 10px;">
+            <p id="textCountryName" class="bigText">Welcome!</p>
+            <br>
+            <div id="NunmbersPerCountry">
+
+                <p class="smallText">has</p>
+                <p id="TotalNumberSpecies" class="bigText">xxx</p>
+                <p class="smallText">species, which are listed on the <a href="http://www.iucnredlist.org/">red list of threatened species</a>!</p>
+                <div id="nextToChart">
+                    <p id="ThreatenedNumberSpecies" class="bigText">yyy</p>
+                    <p class="smallText">of them </p>
+                    <p class="smallText">are classified as threatened.</p><br>
+                    <img id="arrowPie" style="width: 22px; height: auto; float:right;" src="img/arrowPie.png"><br>
+                    <p class="smallText">How endangered are they?</p><br><br>
+                    <p class="smallText">Deforestation (2000-2015) </p>
+                    <div id="treeElement">
+                        <div class="overlay">
+                            <img class="schablone" src="img/tree.gif">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="chart">
+
+                    <div id="pie"></div><br>
+                    <p class="smallText">&nbsp;&nbsp;&nbsp;Unemployment: </p>
+                    <p id="UnemploymentNumber" class="bigText">...</p>
+                    <br><br>
+                    <div id="populationElement">
+                        <div class="overlay">
+                            <img class="person" src="img/person.png">
+                        </div>
+                    </div>
+
+                </div>
+
+
+
+
+            </div>
+
         </div>
     </div>
 </div>
@@ -114,6 +213,7 @@
 <script src="https://d3js.org/d3-geo-projection.v2.min.js"></script>
 <script src="https://d3js.org/d3.v4.min.js"></script>
 <link href="https://fonts.googleapis.com/css?family=Amatic+SC:400,700" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css?family=Roboto+Condensed:400,700" rel="stylesheet">
 <svg height="10" width="10" xmlns="http://www.w3.org/2000/svg" version="1.1">
     <defs>
         <pattern id="hash4_4" patternUnits="userSpaceOnUse" width="6" height="6" patternTransform="rotate(45)">
@@ -127,8 +227,8 @@
 
     var width = 880,
         height = 500,
-        widthPie = 250,
-        heightPie = 250;
+        pieSize = 150,
+        treeSize = 85;
 
     var projection = d3.geoNaturalEarth()
         .scale(175)
@@ -163,6 +263,7 @@
 
     var oneCountrySelected = false;
     var selectedCountry = "None";
+    var selectedCountryCode = "";
     var formerSelection;
     var originalPatternStyle;
 
@@ -179,14 +280,15 @@
         .attr('transform', 'translate(' + -50 + ')')
         .attr("height", height);
 
-    var svgPie = d3.select("#info").append("svg")
-        .attr("width", widthPie)
-        .attr("height", heightPie);
+    var svgPie = d3.select("#pie").append("svg")
+        .attr("width", pieSize)
+        .attr("height", pieSize);
 
     svg.append("rect")
-        .attr("class", "background")
+        .attr("class", "back")
         .attr("width", width)
         .attr("height", height)
+        .attr("fill", "white")
         .on("click", reset)
         .on("mouseover", function (d) {
             tooltip.transition()
@@ -194,6 +296,52 @@
                 .style("opacity", 0);
 
         });
+
+
+    //* --------------- Tree for each country ---------------
+    // ------------------------------------------------------
+
+    var svgTree = d3.select("#treeElement").append("svg")
+        .attr("width", 100)
+        .attr('transform', 'translate( 0, 5)')
+        .attr("height", 100);
+
+    svgTree.append("rect")
+        .attr("class", "TreeRectDown")
+        .attr("width", treeSize)
+        .attr("height", 85)
+        .attr("fill", "red")
+        .on("mouseover", function (d) {
+            tooltip.transition()
+                .duration(200)
+                .style("opacity", 0);
+
+        });
+    //* -------------------------------------------------
+
+    //* --------------- PopDensity for each country ---------------
+    // ------------------------------------------------------
+
+    var svgTree = d3.select("#populationElement").append("svg")
+        .attr("width", 100)
+        .attr('transform', 'translate( 0, 5)')
+        .attr("height", 100);
+
+    svgTree.append("rect")
+        .attr("class", "PopRect")
+        .attr("width", treeSize)
+        .attr("height", 85)
+        .attr("stroke", "grey")
+        .attr("stroke-width", 2)
+        .attr("fill", "none")
+        .on("mouseover", function (d) {
+            tooltip.transition()
+                .duration(200)
+                .style("opacity", 0);
+
+        });
+    //* -------------------------------------------------
+
 
     var states = svg.append("g")
         .attr("id", "states");
@@ -236,7 +384,7 @@
                 tooltip.transition()
                     .duration(200)
                     .style("opacity", .9);
-                tooltip.html(d.properties.name + "<br/>" + "lulu")
+                tooltip.html(d.properties.name)
                     .style("left", (d3.event.pageX) + "px")
                     .style("top", (d3.event.pageY - 28) + "px");
             });
@@ -277,18 +425,31 @@
             .domain([range_low, range_high])
             .interpolate(d3.interpolateLab);
 
+        console.log(dataSet.length);
+
         g.selectAll("path")
             .style("fill", function (d) {
                 var colorN;
+
                 for (var i = 0; i < dataSet.length; i++) {
-                    if (d.id === dataSet[i].country) {
-                        var data = dataSet[i].value;
+                    if (d.id === dataSet[i].country && dataSet[i].value != null) {
+
+                        if(selectedCountryCode == dataSet[i].country ){
+                            console.log("make " + selectedCountry + " to orignColor");
+                            originalPatternStyle = color(dataSet[i].value);
+                        }
+
                         colorN = color(dataSet[i].value);
                         break;
                     }
                     //if country cannot be found (= data not available), make grey!
-                    else {
-                        colorN = "#cccccc"
+                    else if (d.id === dataSet[i].country && dataSet[i].value == null){
+                        if(selectedCountryCode == dataSet[i].country ){
+                            console.log("make " + selectedCountry + " GRAY to orignColor");
+                            originalPatternStyle = "#cccccc";
+                        }
+                        colorN = "#cccccc";
+                        break;
                     }
                 }
 
@@ -296,7 +457,7 @@
             });
 
         // Show pattern also if Category changes
-        if (formerSelection != null) {
+        if (formerSelection != null && selectedCountry != "None") {
             drawPattern(formerSelection);
         }
 
@@ -335,10 +496,10 @@
         dataSet = [];
         g.selectAll("path.arcsTrade").remove();
 
-        console.log(selection);
+        //console.log(selection);
 
         var fileName = "/data/" + selection + ".csv";
-        console.log(fileName);
+        //console.log(fileName);
         d3.csv(fileName, function (countries) {
             countries.forEach(function (country) {
                 var cName = country["Country Code"];
@@ -364,20 +525,46 @@
                     val = endArea;
                 }
 
-                if (val != null) { //if the country codes are available!
+                //if (val != null) { //if the country codes are available!
                     dataSet.push({
                         country: cName,
                         value: val
                     });
-                }
+                //}
+
 
             });
 
+            console.log(dataSet);
             drawCountries();
 
         });
 
-    }
+
+        d3.csv("/data/ForestPercent.csv", function (countries) {
+            countries.forEach(function (country) {
+                if (country["Country Code"] == selection.country) {
+                    var endArea = null;
+                    for (var j = 2015; j > 2005; --j) {
+                        if (country[j.toString()] != null && country[j.toString()] != "") {
+                            endArea = country[j.toString()];
+                            //console.log(cName + " .. END AREA" + endArea);
+                            break;
+                        }
+
+                    }
+                    selectedDataSet.push({
+                        country: selection.country,
+                        deforestationStart: country["2000"],
+                        deforestationEnd: endArea
+                    });
+                }
+
+        });
+        });
+        console.log(selectedDataSet);
+     }
+
 
 
     // --------------------- Click functionality -----------------------------
@@ -386,11 +573,15 @@
 
         var selection = d3.select(this);
         var countrycode = getFromArrayByCountryName(countryCodes, d.properties.name).countrycode2;
+        document.getElementById("TotalNumberSpecies").innerHTML = "...";
+        document.getElementById("ThreatenedNumberSpecies").innerHTML = "...";
 
         // Case: No Country is selected yet, the one that gets clicked => gets selected!
         if (oneCountrySelected == false && d.properties.name != selectedCountry) {
 
+            console.log(d);
             selectedCountry = d.properties.name;
+            selectedCountryCode = d.id;
             formerSelection = selection;
             originalPatternStyle = selection.style("fill");
 
@@ -475,10 +666,11 @@
     var url = "http://apiv3.iucnredlist.org/api/v3/";
 
 
+
     function startPieChartRequest(twoDigits) {
 
+        var lc = 0;
         var dataset = [
-            {label: "LC", count: 0},
             {label: "NT", count: 0},
             {label: "VU", count: 0},
             {label: "EN", count: 0},
@@ -487,9 +679,11 @@
             {label: "EX", count: 0},
             {label: "DD", count: 0},
             {label: "NE", count: 0}];
+        var total = 0;
+        var sumThreat = 0;
 
 
-        var radiusPie = 100;
+        var radiusPie = 75;
         var colorPie = d3.scaleOrdinal(['#3288bd', '#66c2a5', '#abdda4', '#e6f598', '#fee08b', '#e6f598', '#fdae61', '#f46d43', '#d53e4f']);
         var pie = d3.pie()
             .sort(null)
@@ -509,37 +703,51 @@
         d3.json(url + requestSpeciesCountry + twoDigits + token, function (d) {
 
             d.result.forEach(function (animal) {
+                total += 1;
                 switch (animal.category) {
                     case "LC":
-                        dataset[0].count += 1;
+                        lc += 1;
                         break;
                     case "NT":
                         dataset[1].count += 1;
+                        sumThreat += 1;
                         break;
                     case "VU":
                         dataset[2].count += 1;
+                        sumThreat += 1;
                         break;
                     case "EN":
                         dataset[3].count += 1;
+                        sumThreat += 1;
                         break;
                     case "CR":
                         dataset[4].count += 1;
+                        sumThreat += 1;
                         break;
                     case "EW":
                         dataset[5].count += 1;
+                        sumThreat += 1;
                         break;
                     case "EX":
                         dataset[6].count += 1;
+                        sumThreat += 1;
                         break;
                     case "DD":
                         dataset[7].count += 1;
+                        sumThreat += 1;
                         break;
                     case "NE":
                         dataset[8].count += 1;
+                        sumThreat += 1;
+
                         break;
                     default:
                         break;
                 }
+
+
+                document.getElementById("TotalNumberSpecies").innerHTML = total;
+                document.getElementById("ThreatenedNumberSpecies").innerHTML = (((total-lc)/total) * 100).toFixed(2) + "%";
             });
 
             var arc = g1.selectAll(".arc")
@@ -562,10 +770,14 @@
                 })
                 .attr("dy", "0.35em")
                 .text(function (d) {
-                    return d.data.label;
+                    var percent = (d.data.count/sumThreat) * 100;
+                    return d.data.label + " " + (percent).toFixed(1) +"%";
                 });
 
         });
+
+
+
 
     }
 
@@ -620,11 +832,47 @@
 
 
     function changeInfoText(d, selectedBool) {
+
+
+        var selectionData = [];
+
         if (selectedBool == true) {
             document.getElementById("textCountryName").innerHTML = d.properties.name;
+            document.getElementById("NunmbersPerCountry").style.visibility = "visible";
+
+            console.log(d);
+
+            d3.csv("/data/Unemployment.csv", function (countries) {
+                countries.forEach(function (country) {
+                    if (country["Country Code"] == d.id) {
+                        var endArea = null;
+                        var yearData = null;
+                        for (var j = 2015; j > 2005; --j) {
+                            if (country[j.toString()] != null && country[j.toString()] != "") {
+                                endArea = country[j.toString()];
+                                yearData = j;
+                                break;
+                            }
+                        }
+                        selectionData.push({
+                            country: d.id,
+                            unemployment: endArea,
+                            year: yearData
+                        });
+                    }
+
+                });
+                if(selectionData[0].unemployment != null) {
+                    var unemplNumber = selectionData[0].unemployment;
+                    document.getElementById("UnemploymentNumber").innerHTML = parseFloat(unemplNumber).toFixed(1) + "%";
+                    console.log(selectionData[0].unemployment);
+                }
+            });
+
         }
         else {
             document.getElementById("textCountryName").innerHTML = "Select a country to see the trades";
+            document.getElementById("NunmbersPerCountry").style.visibility = "hidden";
         }
     }
 
