@@ -77,6 +77,14 @@
             display: inline;
             font-family: "Roboto Condensed", "sans-serif";
             font-weight: 700;
+            font-size: 17px;
+            line-height: 1.5;
+        }
+
+        .countryText {
+            display: inline;
+            font-family: "Roboto Condensed", "sans-serif";
+            font-weight: 700;
             font-size: 20px;
             line-height: 1.5;
         }
@@ -103,18 +111,18 @@
 
 
         #chart {
-            width: 150px;
-            height: 150px;
+            width: 170px;
+            height: 140px;
             float: right;
         }
 
         #info {
-            padding: 10px;
+            padding: 10px 15px 10px 15px;
         }
 
         #nextToChart {
             float: left;
-            width: 110px;
+            width: 160px;
             height: auto;
         }
 
@@ -129,6 +137,18 @@
         .schablone {
             height: 90px;
             width: auto;
+        }
+
+        #welcome {
+            visibility: visible;
+            position: absolute;
+        }
+
+        .person {
+            height: 15px;
+            width: auto;
+            margin-top: 8px;
+            margin-left: 10px;
         }
 
 
@@ -159,42 +179,79 @@
 
     <div id="content" style="position: absolute; top: 150px;">
         <div id="map"
-             style="border:1px dotted blue; height: 500px; width: 850px; overflow: hidden; float: left; "></div>
+             style="border:1px solid #d3d3d3; height: 500px; width: 850px; overflow: hidden; float: left; "></div>
 
         <div id="info"
-             style="border:1px dotted blue; width: 260px; height: 500px; float:left; background-color: white; margin-left: 10px;">
-            <p id="textCountryName" class="bigText">Welcome!</p>
-            <br>
+             style="border:1px solid #d3d3d3; width: 330px; height: 480px; float:left; background-color: white; margin-left: 10px;">
+            <div id="welcome">
+                <p id="textWelcome" class="bigText">Welcome</p><br>
+                <p id="textExplain" class="smallText">to the Endangered Species Information Visualisation!</p>
+            </div>
             <div id="NunmbersPerCountry">
-
+                <p id="textCountryName" class="countryText">...</p>
                 <p class="smallText">has</p>
-                <p id="TotalNumberSpecies" class="bigText">xxx</p>
-                <p class="smallText">species, which are listed on the <a href="http://www.iucnredlist.org/">red list of threatened species</a>!</p>
+                <p id="TotalNumberSpecies" class="bigText">...</p>
+                <p class="smallText">species, which are listed on the <a href="http://www.iucnredlist.org/">red list of threatened species</a>!</p><br>
                 <div id="nextToChart">
                     <p id="ThreatenedNumberSpecies" class="bigText">yyy</p>
                     <p class="smallText">of them </p>
-                    <p class="smallText">are classified as threatened.</p><br>
-                    <img id="arrowPie" style="width: 22px; height: auto; float:right;" src="img/arrowPie.png"><br>
-                    <p class="smallText">How endangered are they?</p><br><br>
-                    <p class="smallText">Deforestation (2000-2015) </p>
+                    <p class="smallText">are classified as threatened.</p><br><br>
+
+                    <p class="smallText">How endangered are they?</p>
+                    <img id="arrowPie" style="width: 38px; height: auto; float:right; margin-top:10px;" src="img/arrowPie2.png">
+                    <br><br>
+                    <p class="smallText">Deforestation: </p><br> <p id="ForestSQNumber" class="bigText">...</p><p class="bigText"> km²</p>
+                    <p class="smallText">(2000-2015) </p>
+
+                    <br>
                     <div id="treeElement">
                         <div class="overlay">
                             <img class="schablone" src="img/tree.gif">
                         </div>
                     </div>
+                    <br>
+
+                    <p class="smallText" >Unemployment: </p>
+                    <p id="UnemploymentNumber" class="bigText">...</p><p class="smallText">%</p>
+                    <br><br>
+
+
+                    <p class="smallText">Agriculture: </p>
+                    <p id="AgriculturalNumber" class="bigText">...</p><p class="smallText">%</p>
+                    <br><br>
+
+                    <p class="smallText">Life Expectancy: </p><br>
+                    <p id="LifeExpectNumber" class="bigText">...</p><p class="smallText"> Years</p>
+                    <br><br>
+
                 </div>
 
                 <div id="chart">
 
                     <div id="pie"></div><br>
-                    <p class="smallText">&nbsp;&nbsp;&nbsp;Unemployment: </p>
-                    <p id="UnemploymentNumber" class="bigText">...</p>
-                    <br><br>
-                    <div id="populationElement">
-                        <div class="overlay">
-                            <img class="person" src="img/person.png">
+
+
+                    <div style="float:right; margin-right: 15px;">
+                        <p class="smallText">Population Density: </p><br>
+                        <p id="PopDensityNumber" class="bigText">...</p> <p class="smallText">(People/km²)</p>
+
+                        <div id="populationElement">
                         </div>
+                        <img class="person" src="img/person.png">
+                        <p class="smallText">= 10 persons</p>
+                        <br><br>
                     </div>
+
+
+
+
+                    <p class="smallText">&nbsp;&nbsp;&nbsp;&nbsp;Poverty: </p>
+                    <p id="PovertyNumber" class="bigText">...</p><p class="smallText">%</p>
+                    <br><br>
+
+
+
+
 
                 </div>
 
@@ -225,7 +282,7 @@
 
 <script>
 
-    var width = 880,
+    var width = 900,
         height = 500,
         pieSize = 150,
         treeSize = 85;
@@ -267,12 +324,24 @@
     var formerSelection;
     var originalPatternStyle;
 
+    var colorTrades = "Red";
+
     var path = d3.geoPath()
         .projection(projection);
+
+    // dimensions
+    var dims = {
+        width: 1,
+        height: 1,
+        svg_dx: 1,
+        svg_dy: 1
+    };
 
     var zoom = d3.zoom()
     //.translateTo([defaultTranslateX, defaultTranslateY])
     //.scaleExtent([1, 8])
+        .translateExtent([[0, 0], [width,height]])
+        .scaleExtent([1,10])
         .on("zoom", zoomed);
 
     var svg = d3.select("#map").append("svg")
@@ -323,14 +392,14 @@
     // ------------------------------------------------------
 
     var svgTree = d3.select("#populationElement").append("svg")
-        .attr("width", 100)
+        .attr("width", 110)
         .attr('transform', 'translate( 0, 5)')
-        .attr("height", 100);
+        .attr("height", 110);
 
     svgTree.append("rect")
         .attr("class", "PopRect")
-        .attr("width", treeSize)
-        .attr("height", 85)
+        .attr("width", 110)
+        .attr("height", 110)
         .attr("stroke", "grey")
         .attr("stroke-width", 2)
         .attr("fill", "none")
@@ -363,12 +432,11 @@
 
     // ----------------- Countries -------------------------------
 
+    var selectionTooltip = "", selectionTooltipEnd = "";
     setSelection('ForestPercent');
 
     d3.json("data/countries.geo.json", function (collection) {
         collectionX = collection;
-        console.log(collection);
-        console.log(collectionX);
         g.selectAll("path")
             .data(collection.features)
             .enter().append("path")
@@ -381,10 +449,20 @@
 
             .on("click", clicked)
             .on("mouseover", function (d) {
+                var number = null;
+                dataSet.forEach(function (data){
+                    if (d.id === data.country && data.value != null) {
+                            number = data.value;
+                            number = parseFloat(number).toFixed(2);
+                    }
+                    else if (d.id === data.country && data.value == null){
+                        number = "No Data";
+                    }
+                });
                 tooltip.transition()
                     .duration(200)
                     .style("opacity", .9);
-                tooltip.html(d.properties.name)
+                tooltip.html(d.properties.name + " <br> "+ selectionTooltip + ": " + number + selectionTooltipEnd)
                     .style("left", (d3.event.pageX) + "px")
                     .style("top", (d3.event.pageY - 28) + "px");
             });
@@ -408,7 +486,43 @@
 
     function drawCountries() {
 
-        var rainbow = d3.scaleSequential(d3.interpolateRainbow);
+        var col_range_low = "#85006e" ;
+        var col_range_high = "#00ef3e";
+
+        switch (selectedDataSet) {
+            case "ForestPercent":
+                col_range_low = "#85006e" ;
+                col_range_high = "#00ef3e";
+                colorTrades = "#b20e01";
+                break;
+            case "LifeExpect":
+                col_range_low = "#a5bbf4";
+                col_range_high = "#0b0c62";
+                colorTrades = "#b20e01";
+                break;
+            case "PopDensity":
+                col_range_low = "#f7c809";
+                col_range_high = "#b20e01";
+                colorTrades = "#012474";
+                break;
+            case "Poverty":
+                col_range_low = "#cee2fa";
+                col_range_high = "#8c9fd6";
+                colorTrades = "#b20e01";
+                break;
+            case "Unemployment":
+                col_range_low = "#ffadb9";
+                col_range_high = "#792235";
+                colorTrades = "#031164";
+                break;
+            case "Agricultural":
+                col_range_low = "#e5ed93";
+                col_range_high = "#085306";
+                colorTrades = "#b20e01";
+                break;
+            default:
+                break;
+        }
 
         var range_low = d3.min(dataSet, function (d) {
                 return d.value
@@ -417,15 +531,11 @@
                 return d.value
             });
 
-        var col_range_low = "#009933",
-            col_range_high = "#FF0000";
-
         var color = d3.scaleLinear()
             .range([col_range_low, col_range_high])
             .domain([range_low, range_high])
             .interpolate(d3.interpolateLab);
 
-        console.log(dataSet.length);
 
         g.selectAll("path")
             .style("fill", function (d) {
@@ -435,7 +545,6 @@
                     if (d.id === dataSet[i].country && dataSet[i].value != null) {
 
                         if(selectedCountryCode == dataSet[i].country ){
-                            console.log("make " + selectedCountry + " to orignColor");
                             originalPatternStyle = color(dataSet[i].value);
                         }
 
@@ -445,7 +554,6 @@
                     //if country cannot be found (= data not available), make grey!
                     else if (d.id === dataSet[i].country && dataSet[i].value == null){
                         if(selectedCountryCode == dataSet[i].country ){
-                            console.log("make " + selectedCountry + " GRAY to orignColor");
                             originalPatternStyle = "#cccccc";
                         }
                         colorN = "#cccccc";
@@ -486,7 +594,35 @@
     // --------------- Select Option for country backgrounds -----------------------------
 
     function setSelection(selection) {
-        console.log(selection);
+
+        switch (selection) {
+            case "ForestPercent":
+                selectionTooltip = "Deforestation";
+                selectionTooltipEnd = "% (of the with forest covered Land area)";
+                break;
+            case "LifeExpect":
+                selectionTooltip = "Life Expectancy";
+                selectionTooltipEnd = " Years";
+                break;
+            case "PopDensity":
+                selectionTooltip = "Population Density";
+                selectionTooltipEnd = " people per km²";
+                break;
+            case "Poverty":
+                selectionTooltip = "Poverty";
+                selectionTooltipEnd = " % of population (Poverty headcount ratio at national poverty lines)";
+                break;
+            case "Unemployment":
+                selectionTooltip = "Unemployment";
+                selectionTooltipEnd = "% (of total labor force)";
+                break;
+            case "Agricultural":
+                selectionTooltip = "Agricultural Land Use";
+                selectionTooltipEnd = "% of the land area";
+                break;
+            default:
+                break;
+        }
 
         document.getElementById(selectedDataSet).style.borderBottom = null; // set former selection back to default
         document.getElementById(selection).style.borderBottom = "1px solid"; // set new selection to selected style
@@ -496,24 +632,28 @@
         dataSet = [];
         g.selectAll("path.arcsTrade").remove();
 
-        //console.log(selection);
 
         var fileName = "/data/" + selection + ".csv";
-        //console.log(fileName);
         d3.csv(fileName, function (countries) {
             countries.forEach(function (country) {
                 var cName = country["Country Code"];
-                var startArea = country["2000"];
+                //var startArea = country["2000"];
 
+                var startArea = null;
                 var endArea = null;
 
                 for (var j = 2015; j > 2005; --j) {
                     if (country[j.toString()] != null && country[j.toString()] != "") {
                         endArea = country[j.toString()];
-                        //console.log(cName + " .. END AREA" + endArea);
                         break;
                     }
 
+                }
+                for (var i = 2000; i > 1990; --i) {
+                    if (country[i.toString()] != null && country[i.toString()] != "") {
+                        startArea = country[i.toString()];
+                        break;
+                    }
                 }
                 var val;
 
@@ -535,7 +675,6 @@
 
             });
 
-            console.log(dataSet);
             drawCountries();
 
         });
@@ -548,21 +687,20 @@
                     for (var j = 2015; j > 2005; --j) {
                         if (country[j.toString()] != null && country[j.toString()] != "") {
                             endArea = country[j.toString()];
-                            //console.log(cName + " .. END AREA" + endArea);
                             break;
                         }
 
                     }
+
                     selectedDataSet.push({
                         country: selection.country,
-                        deforestationStart: country["2000"],
+                        deforestationStart: startArea,
                         deforestationEnd: endArea
                     });
                 }
 
         });
         });
-        console.log(selectedDataSet);
      }
 
 
@@ -579,7 +717,6 @@
         // Case: No Country is selected yet, the one that gets clicked => gets selected!
         if (oneCountrySelected == false && d.properties.name != selectedCountry) {
 
-            console.log(d);
             selectedCountry = d.properties.name;
             selectedCountryCode = d.id;
             formerSelection = selection;
@@ -655,13 +792,12 @@
         document.getElementById("patternBack").style.fill = selection.style("fill");
         selection.style("fill", "url(#hash4_4)");
         selection.classed("selected", true);
-        console.log("sth happening ? ");
     }
 
 
     // --------------------- PIE CHARTS  -----------------------------
 
-    var token = "?token=9bb4facb6d23f48efbf424bb05c0c1ef1cf6f468393bc745d42179ac4aca5fee";
+    var token = "?token=a3ebe73f8459887d1af2a0aec76c95a8ed620106ce7181b396648f07a8fba39b";
     var requestSpeciesCountry = "country/getspecies/";
     var url = "http://apiv3.iucnredlist.org/api/v3/";
 
@@ -760,7 +896,7 @@
             arc.append("path")
                 .attr("d", pathPie)
                 .attr("id", "pieB")
-                .attr("fill", function (d) { //console.log(d);
+                .attr("fill", function (d) {
                     return colorPie(d.data.count);
                 });
 
@@ -814,7 +950,7 @@
             .enter()
             .append("path")
             .attr("class", "arcsTrade")
-            .style("stroke", "Red")
+            .style("stroke", colorTrades)
             .style("fill", "none")
             .style("stroke-width", function (d) {
 
@@ -834,49 +970,127 @@
     function changeInfoText(d, selectedBool) {
 
 
-        var selectionData = [];
+        var selectionData = {Country: null, Deforestation: null, Poverty: null, PopDensity: null, Unemployment: null};
 
-        if (selectedBool == true) {
-            document.getElementById("textCountryName").innerHTML = d.properties.name;
-            document.getElementById("NunmbersPerCountry").style.visibility = "visible";
+        d3.selectAll("#person").remove();
 
-            console.log(d);
+        function drawPeople (number) {
 
-            d3.csv("/data/Unemployment.csv", function (countries) {
+            var widthPerson = 18, heightPerson = 46;
+            if (number > 10) {
+                number = number / 10;
+            }
+            else { number = 1;}
+
+            var y = 0;
+            var x = 0;
+            for (var i = 0; i<number; i++){
+
+
+                if (i % 10 == 0 && i != 0){
+                    y += 1;
+                    x = 0;
+                }
+
+                if(i < 39 ) {
+
+                    svgTree.append("svg:image")
+                        .attr("id", "person")
+                        .attr("xlink:href", "img/person.png")
+                        .attr('height', heightPerson / 2)
+                        .attr('width', widthPerson / 2)
+                        .attr('transform', 'translate( ' + (x * (widthPerson / 1.8) + 5 ) + ', ' + (y * (heightPerson / 1.8) + 5) + ')')
+
+                }
+                else if (i == 39) {svgTree.append("svg:image")
+                    .attr("id", "person")
+                    .attr("xlink:href", "img/dotdotdot.png")
+                    .attr('height', heightPerson / 2)
+                    .attr('width', widthPerson / 2)
+                    .attr('transform', 'translate( ' + (x * (widthPerson / 1.8) + 5 ) + ', ' + (y * (heightPerson / 1.8) + 5) + ')')
+                }
+                x += 1;
+
+            }
+
+        }
+
+        function getDataFromFilePerCountry(DataSet) {
+            d3.csv("/data/"+ DataSet +".csv", function (countries) {
                 countries.forEach(function (country) {
                     if (country["Country Code"] == d.id) {
-                        var endArea = null;
+                        var endData = null;
                         var yearData = null;
+                        var startData = null;
                         for (var j = 2015; j > 2005; --j) {
                             if (country[j.toString()] != null && country[j.toString()] != "") {
-                                endArea = country[j.toString()];
+                                endData = country[j.toString()];
                                 yearData = j;
                                 break;
                             }
                         }
-                        selectionData.push({
-                            country: d.id,
-                            unemployment: endArea,
-                            year: yearData
-                        });
+                        for (var i = 2000; i > 1990; --i) {
+                            if (country[i.toString()] != null && country[i.toString()] != "") {
+                                startData = country[i.toString()];
+                                break;
+                            }
+                        }
+                        var val;
+
+                        // For Deforestation calculate Difference between 2015 & 2000 (Square Kilometers!)
+                        if (DataSet == 'ForestSQ') {
+                            val = endData - startData;
+                        }
+                        else {
+                            val = endData;
+                        }
+                        selectionData[DataSet] = val;
                     }
 
                 });
-                if(selectionData[0].unemployment != null) {
-                    var unemplNumber = selectionData[0].unemployment;
-                    document.getElementById("UnemploymentNumber").innerHTML = parseFloat(unemplNumber).toFixed(1) + "%";
-                    console.log(selectionData[0].unemployment);
+                if (selectionData[DataSet] != null) {
+                    var value = selectionData[DataSet];
+                    if (DataSet != 'ForestSQ') {
+                        value = parseFloat(value).toFixed(1);
+                    }
+                    else {
+                        value = parseFloat(value);
+                    }
+                    document.getElementById(DataSet+"Number").innerHTML = value ;
+                    if(DataSet == 'PopDensity'){
+                        drawPeople(parseFloat(value).toFixed(1));
+                    }
+                }
+                else {
+                    document.getElementById(DataSet+"Number").innerHTML ="No Data";
                 }
             });
+        }
+
+        if (selectedBool == true) {
+            document.getElementById("textCountryName").innerHTML = d.properties.name;
+            document.getElementById("NunmbersPerCountry").style.visibility = "visible";
+            document.getElementById("welcome").style.visibility = "hidden";
+
+
+            getDataFromFilePerCountry("Agricultural");
+            getDataFromFilePerCountry("ForestSQ");
+            getDataFromFilePerCountry("PopDensity");
+            getDataFromFilePerCountry("Unemployment");
+            getDataFromFilePerCountry("Poverty");
+            getDataFromFilePerCountry("LifeExpect");
+
+
 
         }
         else {
             document.getElementById("textCountryName").innerHTML = "Select a country to see the trades";
             document.getElementById("NunmbersPerCountry").style.visibility = "hidden";
+            document.getElementById("welcome").style.visibility = "visible";
         }
     }
 
-    // ----------------------------- DATA (still airport)-----------------------------------------
+    // ----------------------------- DATA (Animal Trades)-----------------------------------------
 
 
     d3.csv("/data/animalTrade.csv", function (trades) {
