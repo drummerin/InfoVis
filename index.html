@@ -127,18 +127,6 @@
         }
 
 
-
-        .overlay {
-            z-index: 3;
-            position: absolute;
-        }
-
-
-        .schablone {
-            height: 90px;
-            width: auto;
-        }
-
         #welcome {
             visibility: visible;
             position: absolute;
@@ -193,36 +181,41 @@
                 <p id="TotalNumberSpecies" class="bigText">...</p>
                 <p class="smallText">species, which are listed on the <a href="http://www.iucnredlist.org/">red list of threatened species</a>!</p><br>
                 <div id="nextToChart">
-                    <p id="ThreatenedNumberSpecies" class="bigText">yyy</p>
+                    <p id="ThreatenedNumberSpecies" class="bigText">...</p>
                     <p class="smallText">of them </p>
                     <p class="smallText">are classified as threatened.</p><br><br>
 
                     <p class="smallText">How endangered are they?</p>
                     <img id="arrowPie" style="width: 38px; height: auto; float:right; margin-top:10px;" src="img/arrowPie2.png">
                     <br><br>
-                    <p class="smallText">Deforestation: </p><br> <p id="ForestSQNumber" class="bigText">...</p><p class="bigText"> km²</p>
-                    <p class="smallText">(2000-2015) </p>
+                    <p class="smallText">Deforestation: </p><br> <p id="ForestSQNumber" class="bigText">...</p><p class="smallText"> km²</p>
+                    <p class="smallText"> since 2000</p>
 
                     <br>
                     <div id="treeElement">
-                        <div class="overlay">
-                            <img class="schablone" src="img/tree.gif">
-                        </div>
                     </div>
-                    <br>
+
+                    <hr style="margin:5px;">
+                    <img class="person" src="img/tree.png">
+                    <p class="smallText">= 10.000 km² forest</p>
+                    <br><br>
 
                     <p class="smallText" >Unemployment: </p>
                     <p id="UnemploymentNumber" class="bigText">...</p><p class="smallText">%</p>
                     <br><br>
 
+                    <div style="float:right; margin-left: 35px;">
+                        <p class="smallText">Agriculture: </p>
+                        <p id="AgriculturalNumber" class="bigText">...</p><p class="smallText">%</p>
 
-                    <p class="smallText">Agriculture: </p>
-                    <p id="AgriculturalNumber" class="bigText">...</p><p class="smallText">%</p>
+                        <br><br>
+                    </div>
+
+
+                    <p class="smallText">&nbsp;&nbsp;&nbsp;&nbsp;Poverty: </p>
+                    <p id="PovertyNumber" class="bigText">...</p><p class="smallText">%</p>
                     <br><br>
 
-                    <p class="smallText">Life Expectancy: </p><br>
-                    <p id="LifeExpectNumber" class="bigText">...</p><p class="smallText"> Years</p>
-                    <br><br>
 
                 </div>
 
@@ -242,12 +235,12 @@
                         <br><br>
                     </div>
 
-
-
-
-                    <p class="smallText">&nbsp;&nbsp;&nbsp;&nbsp;Poverty: </p>
-                    <p id="PovertyNumber" class="bigText">...</p><p class="smallText">%</p>
+                    <div style="float: right; margin-right: 50px;">
+                    <p class="smallText" >Life Expectancy: </p><br>
+                    <p id="LifeExpectNumber" class="bigText">...</p><p class="smallText"> Years</p>
                     <br><br>
+                    </div>
+
 
 
 
@@ -286,6 +279,7 @@
         height = 500,
         pieSize = 150,
         treeSize = 85;
+
 
     var projection = d3.geoNaturalEarth()
         .scale(175)
@@ -353,6 +347,17 @@
         .attr("width", pieSize)
         .attr("height", pieSize);
 
+    svgPie.append("rect")
+        .attr("class", "back")
+        .attr("width", pieSize)
+        .attr("height", pieSize)
+        .attr("fill", "white")
+        .on("mouseover", function (d) {
+            tooltip.transition()
+                .duration(200)
+                .style("opacity", 0)
+        });
+
     svg.append("rect")
         .attr("class", "back")
         .attr("width", width)
@@ -362,53 +367,29 @@
         .on("mouseover", function (d) {
             tooltip.transition()
                 .duration(200)
-                .style("opacity", 0);
-
+                .style("opacity", 0)
         });
 
 
-    //* --------------- Tree for each country ---------------
-    // ------------------------------------------------------
 
-    var svgTree = d3.select("#treeElement").append("svg")
-        .attr("width", 100)
-        .attr('transform', 'translate( 0, 5)')
-        .attr("height", 100);
 
-    svgTree.append("rect")
-        .attr("class", "TreeRectDown")
-        .attr("width", treeSize)
-        .attr("height", 85)
-        .attr("fill", "red")
-        .on("mouseover", function (d) {
-            tooltip.transition()
-                .duration(200)
-                .style("opacity", 0);
-
-        });
     //* -------------------------------------------------
 
     //* --------------- PopDensity for each country ---------------
     // ------------------------------------------------------
 
-    var svgTree = d3.select("#populationElement").append("svg")
+    var svgPop = d3.select("#populationElement").append("svg")
         .attr("width", 110)
         .attr('transform', 'translate( 0, 5)')
         .attr("height", 110);
 
-    svgTree.append("rect")
+    svgPop.append("rect")
         .attr("class", "PopRect")
         .attr("width", 110)
         .attr("height", 110)
         .attr("stroke", "grey")
         .attr("stroke-width", 2)
-        .attr("fill", "none")
-        .on("mouseover", function (d) {
-            tooltip.transition()
-                .duration(200)
-                .style("opacity", 0);
-
-        });
+        .attr("fill", "none");
     //* -------------------------------------------------
 
 
@@ -806,21 +787,21 @@
     function startPieChartRequest(twoDigits) {
 
         var lc = 0;
+        var ne = 0;
+        var dd = 0;
         var dataset = [
             {label: "NT", count: 0},
             {label: "VU", count: 0},
             {label: "EN", count: 0},
             {label: "CR", count: 0},
             {label: "EW", count: 0},
-            {label: "EX", count: 0},
-            {label: "DD", count: 0},
-            {label: "NE", count: 0}];
+            {label: "EX", count: 0}];
         var total = 0;
         var sumThreat = 0;
 
 
         var radiusPie = 75;
-        var colorPie = d3.scaleOrdinal(['#3288bd', '#66c2a5', '#abdda4', '#e6f598', '#fee08b', '#e6f598', '#fdae61', '#f46d43', '#d53e4f']);
+        var colorPie = d3.scaleOrdinal(['#F5FF00', '#FFD200', '#FF9C01', '#F52401', '#F53B65', '#9D2025']);
         var pie = d3.pie()
             .sort(null)
             .value(function (d) {
@@ -845,37 +826,34 @@
                         lc += 1;
                         break;
                     case "NT":
-                        dataset[1].count += 1;
+                        dataset[0].count += 1;
                         sumThreat += 1;
                         break;
                     case "VU":
-                        dataset[2].count += 1;
+                        dataset[1].count += 1;
                         sumThreat += 1;
                         break;
                     case "EN":
-                        dataset[3].count += 1;
+                        dataset[2].count += 1;
                         sumThreat += 1;
                         break;
                     case "CR":
-                        dataset[4].count += 1;
+                        dataset[3].count += 1;
                         sumThreat += 1;
                         break;
                     case "EW":
-                        dataset[5].count += 1;
+                        dataset[4].count += 1;
                         sumThreat += 1;
                         break;
                     case "EX":
-                        dataset[6].count += 1;
+                        dataset[5].count += 1;
                         sumThreat += 1;
                         break;
                     case "DD":
-                        dataset[7].count += 1;
-                        sumThreat += 1;
+                        dd += 1;
                         break;
                     case "NE":
-                        dataset[8].count += 1;
-                        sumThreat += 1;
-
+                        ne += 1;
                         break;
                     default:
                         break;
@@ -883,7 +861,7 @@
 
 
                 document.getElementById("TotalNumberSpecies").innerHTML = total;
-                document.getElementById("ThreatenedNumberSpecies").innerHTML = (((total-lc)/total) * 100).toFixed(2) + "%";
+                document.getElementById("ThreatenedNumberSpecies").innerHTML = (((total-(lc+dd+ne))/total) * 100).toFixed(2) + "%";
             });
 
             var arc = g1.selectAll(".arc")
@@ -891,7 +869,38 @@
                 .enter().append("g")
                 .attr("id", "pieA")
                 .attr("class", "arc").attr('transform', 'translate(' + radiusPie +
-                    ',' + radiusPie + ')');
+                    ',' + radiusPie + ')')
+                .on("mouseover", function (d) {
+                    var textStatus;
+                    var percent = (d.data.count/sumThreat) * 100;
+                    switch(d.data.label){
+                        case "NT":
+                            textStatus = "Near Threatened";
+                            break;
+                        case "VU":
+                            textStatus = "Vulnerable";
+                            break;
+                        case "EN":
+                            textStatus = "Endangered";
+                            break;
+                        case "CR":
+                            textStatus = "Critically Endangered";
+                            break;
+                        case "EW":
+                            textStatus = "Extinct in the Wild";
+                            break;
+                        case "EX":
+                            textStatus = "Extinct";
+                            break;
+                        default:
+                            break;}
+                    tooltip.transition()
+                        .duration(200)
+                        .style("opacity", .9);
+                    tooltip.html(textStatus + ": " + (percent).toFixed(1) +"%")
+                        .style("left", (d3.event.pageX) + "px")
+                        .style("top", (d3.event.pageY - 28) + "px");
+                });
 
             arc.append("path")
                 .attr("d", pathPie)
@@ -906,8 +915,10 @@
                 })
                 .attr("dy", "0.35em")
                 .text(function (d) {
-                    var percent = (d.data.count/sumThreat) * 100;
-                    return d.data.label + " " + (percent).toFixed(1) +"%";
+                    var percent = (d.data.count / sumThreat) * 100;
+                    if(percent > 10 ) {
+                        return d.data.label;
+                    }
                 });
 
         });
@@ -994,7 +1005,7 @@
 
                 if(i < 39 ) {
 
-                    svgTree.append("svg:image")
+                    svgPop.append("svg:image")
                         .attr("id", "person")
                         .attr("xlink:href", "img/person.png")
                         .attr('height', heightPerson / 2)
@@ -1002,7 +1013,7 @@
                         .attr('transform', 'translate( ' + (x * (widthPerson / 1.8) + 5 ) + ', ' + (y * (heightPerson / 1.8) + 5) + ')')
 
                 }
-                else if (i == 39) {svgTree.append("svg:image")
+                else if (i == 39) {svgPop.append("svg:image")
                     .attr("id", "person")
                     .attr("xlink:href", "img/dotdotdot.png")
                     .attr('height', heightPerson / 2)
@@ -1011,6 +1022,98 @@
                 }
                 x += 1;
 
+            }
+
+        }
+
+        function drawTrees (number) {
+
+            var treeSvgWidth = 30;
+            var svgCalcNumber = Math.abs(number);
+            for (var k = 0; k<svgCalcNumber; k++) {
+                if (k % 70000 == 0 && k != 0 && k < 280000) {
+                    treeSvgWidth += 20;
+                }
+                else if (k > 280000){ treeSvgWidth  = 90}
+            }
+            d3.selectAll("#treeContainer").remove();
+
+            var svgTree = d3.select("#treeElement").append("svg")
+                .attr("width", 135)
+                .attr("id", "treeContainer")
+                .attr('transform', 'translate( 0, 5)')
+                .attr("height", treeSvgWidth);
+
+            var widthTree = 28, heightTree = 30;
+            if (number > 1000 || number < -1000) {
+                number = number / 10000;
+            }
+            else if (number > 0 && number <= 1000) {
+                number = 1;
+            }
+            else if (number < 0 && number >= -1000) {
+                number = -1;
+            }
+
+            var y = 0;
+            var x = 0;
+            if(number > 0) {
+                for (var i = 0; i<number; i++) {
+
+                    if (i % 7 == 0 && i != 0) {
+                        y += 1;
+                        x = 0;
+                    }
+
+                    if (i < 27) {
+
+                        svgTree.append("svg:image")
+                            .attr("id", "person")
+                            .attr("xlink:href", "img/treeGreen.png")
+                            .attr('height', heightTree / 1.5)
+                            .attr('width', widthTree / 1.5)
+                            .attr('transform', 'translate( ' + (x * (widthTree / 1.5) + 5 ) + ', ' + (y * (heightTree / 1.5) + 5) + ')')
+
+                    }
+                    else if (i == 27) {
+                        svgTree.append("svg:image")
+                            .attr("id", "person")
+                            .attr("xlink:href", "img/dotdotdot.png")
+                            .attr('height', heightTree / 1.5)
+                            .attr('width', widthTree / 1.5)
+                            .attr('transform', 'translate( ' + (x * (widthTree / 1.5) + 5 ) + ', ' + (y * (heightTree / 1.5) + 5) + ')')
+                    }
+                    x += 1;
+                }
+            }
+            else if(number < 0) {
+                for (var j = 0; j>number; --j) {
+
+                    if (j % 7 == 0 && j != 0) {
+                        y += 1;
+                        x = 0;
+                    }
+
+                    if (j > -27) {
+
+                        svgTree.append("svg:image")
+                            .attr("id", "person")
+                            .attr("xlink:href", "img/treeRed.png")
+                            .attr('height', heightTree / 1.5)
+                            .attr('width', widthTree / 1.5)
+                            .attr('transform', 'translate( ' + (x * (widthTree / 1.5) + 5 ) + ', ' + (y * (heightTree / 1.5) + 5) + ')')
+
+                    }
+                    else if (j == -27) {
+                        svgTree.append("svg:image")
+                            .attr("id", "person")
+                            .attr("xlink:href", "img/dotdotdot.png")
+                            .attr('height', heightTree / 1.5)
+                            .attr('width', widthTree / 1.5)
+                            .attr('transform', 'translate( ' + (x * (widthTree / 1.5) + 5 ) + ', ' + (y * (heightTree / 1.5) + 5) + ')')
+                    }
+                    x += 1;
+                }
             }
 
         }
@@ -1059,6 +1162,9 @@
                     document.getElementById(DataSet+"Number").innerHTML = value ;
                     if(DataSet == 'PopDensity'){
                         drawPeople(parseFloat(value).toFixed(1));
+                    }
+                    else if(DataSet == 'ForestSQ'){
+                        drawTrees(parseFloat(value).toFixed(1));
                     }
                 }
                 else {
