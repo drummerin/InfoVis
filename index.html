@@ -151,7 +151,7 @@
 <div id="all" style="display: flex; justify-content: center; min-width: 950px; ">
     <img id="logo2" src="img/headerLogo.png" style="height: 150px; float:left; margin-top: -15px;">
     <div id="selectables2" style="display: flex; margin-top: 20px; height: 100px; padding:10px; ">
-        <a class="selectablePs" id="PopDensity" onclick="setSelection('PopDensity')">Population Density</a>
+        <p class="selectablePs" id="ThreatenedSpecies" onclick="setSelection('ThreatenedSpecies')">Endangered Species</p>
         <p class="unselectablePs">&nbsp;|&nbsp;</p>
         <a class="selectablePs" id="Poverty" onclick="setSelection('Poverty')">Poverty</a>
         <p class="unselectablePs">&nbsp;|&nbsp;</p>
@@ -163,6 +163,8 @@
         <p class="selectablePs" id="Agricultural" onclick="setSelection('Agricultural')">Agriculture</p>
         <p class="unselectablePs">&nbsp;|&nbsp;</p>
         <p class="selectablePs" id="LifeExpect" onclick="setSelection('LifeExpect')">Life Expectancy</p>
+        <p class="unselectablePs">&nbsp;|&nbsp;</p>
+        <a class="selectablePs" id="PopDensity" onclick="setSelection('PopDensity')">Population Density</a>
     </div>
 
     <div id="content" style="position: absolute; top: 150px;">
@@ -432,11 +434,20 @@
             .on("mouseover", function (d) {
                 var number = null;
                 dataSet.forEach(function (data){
-                    if (d.id === data.country && data.value != null) {
+
+                    var countryName = data.country;
+                    if(selectedDataSet === "ThreatenedSpecies") {
+                        countryName = getFromArrayByTwoDigits(countryCodeCenters, data.country);
+                        if(countryName != null) {
+                            countryName = countryName.codethree;
+                        }
+                    }
+
+                    if (d.id === countryName && data.value != null) {
                             number = data.value;
                             number = parseFloat(number).toFixed(2);
                     }
-                    else if (d.id === data.country && data.value == null){
+                    else if (d.id === countryName && data.value == null){
                         number = "No Data";
                     }
                 });
@@ -501,6 +512,11 @@
                 col_range_high = "#085306";
                 colorTrades = "#b20e01";
                 break;
+            case "ThreatenedSpecies":
+                col_range_low = "#fffd00";
+                col_range_high = "#bf1600";
+                colorTrades = "#031164";
+                break;
             default:
                 break;
         }
@@ -523,7 +539,17 @@
                 var colorN;
 
                 for (var i = 0; i < dataSet.length; i++) {
-                    if (d.id === dataSet[i].country && dataSet[i].value != null) {
+
+                    var countryName = dataSet[i].country;
+
+                    if(selectedDataSet === "ThreatenedSpecies") {
+                        countryName = getFromArrayByTwoDigits(countryCodeCenters, dataSet[i].country);
+                        if(countryName != null) {
+                            countryName = countryName.codethree;
+                        }
+                    }
+
+                    if (d.id === countryName && dataSet[i].value != null) {
 
                         if(selectedCountryCode == dataSet[i].country ){
                             originalPatternStyle = color(dataSet[i].value);
@@ -576,6 +602,8 @@
 
     function setSelection(selection) {
 
+        console.log(countryCodeCenters);
+
         switch (selection) {
             case "ForestPercent":
                 selectionTooltip = "Deforestation";
@@ -600,6 +628,10 @@
             case "Agricultural":
                 selectionTooltip = "Agricultural Land Use";
                 selectionTooltipEnd = "% of the land area";
+                break;
+            case "ThreatenedSpecies":
+                selectionTooltip = "Endangered Species: ";
+                selectionTooltipEnd = "% of the total number of species";
                 break;
             default:
                 break;
@@ -641,6 +673,13 @@
                 // For Deforestation calculate Difference between 2015 & 2000!
                 if (selection == 'ForestPercent') {
                     val = endArea - startArea;
+                }
+                else if (selection == 'ThreatenedSpecies') {
+                    console.log(country["NumberThrSpecies"]);
+                    var threat = country["NumberThrSpecies"];
+                    var total = country["Total"];
+                    val = (threat *100) / total; //percent (threatened) of total species
+                    console.log(val);
                 }
                 else {
                     val = endArea;
@@ -782,7 +821,66 @@
     var requestSpeciesCountry = "country/getspecies/";
     var url = "http://apiv3.iucnredlist.org/api/v3/";
 
+    // Function to get Number of Threatened Species per Country from the RedListApi (to write it to csv file)
+    function makeRequest () {
+        var datasetX = [];
+        var l = 0;
+        countryCodes.forEach(function (country) {
+            var total = 0;
+            var sumThreat = 0;
+            d3.json(url + requestSpeciesCountry + country.countrycode2 + token, function (d) {
+                d.result.forEach(function (animal) {
+                    total += 1;
+                    switch (animal.category) {
+                        case "LC":
+                            break;
+                        case "NT":
+                            sumThreat += 1;
+                            break;
+                        case "VU":
+                            sumThreat += 1;
+                            break;
+                        case "EN":
+                            sumThreat += 1;
+                            break;
+                        case "CR":
+                            sumThreat += 1;
+                            break;
+                        case "EW":
+                            sumThreat += 1;
+                            break;
+                        case "EX":
+                            sumThreat += 1;
+                            break;
+                        case "DD":
+                            break;
+                        case "NE":
+                            break;
+                        default:
+                            break;
+                    }
 
+                });
+                console.log(l);
+
+                var arrayFirst = [country.countrycode2, "'"+sumThreat+"'", "'"+total+"'"];
+                datasetX.push(arrayFirst);
+                if (l ===248) {
+                    var csv = 'CountryCode,NumberThrSpecies,Total\n';
+                    datasetX.forEach(function (row) {
+                        csv += row.join(',');
+                        csv += "\n";
+                    });
+                    var hiddenElement = document.createElement('a');
+                    hiddenElement.href = 'data:text/csv;charset=utf-8,' + encodeURI(csv);
+                    hiddenElement.target = '_blank';
+                    hiddenElement.download = 'ThreatenedSpecies.csv';
+                    hiddenElement.click();
+                }
+                l += 1;
+            });
+        });
+    }
 
     function startPieChartRequest(twoDigits) {
 
@@ -861,7 +959,7 @@
 
 
                 document.getElementById("TotalNumberSpecies").innerHTML = total;
-                document.getElementById("ThreatenedNumberSpecies").innerHTML = (((total-(lc+dd+ne))/total) * 100).toFixed(2) + "%";
+                document.getElementById("ThreatenedNumberSpecies").innerHTML = (((sumThreat)*100) / total).toFixed(2) + "%";
             });
 
             var arc = g1.selectAll(".arc")
@@ -1212,6 +1310,7 @@
             links.push({exportCountry: exporter, importCountry: importer});
             var exportInfo = getFromArrayByTwoDigits(countryCodeCenters, exporter);
             var importInfo = getFromArrayByTwoDigits(countryCodeCenters, importer);
+
             if (exportInfo != null && importInfo != null) { //if the country codes are available!
                 arcdataTrade.push({
                     exportCountry: exportInfo.country, importCountry: importInfo.country,
@@ -1244,6 +1343,8 @@
         codes.forEach(function (code) {
             countryCodes.push({countryname: code.Name, countrycode2: code.Code});
         });
+        console.log(countryCodes);
+        console.log(countryCodes.length);
     });
 
 
