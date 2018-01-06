@@ -3,208 +3,53 @@
 <head>
     <title>Endangered Species!</title>
     <link rel="shortcut icon" type="image/png" href="http://localhost:8000/assets/favicon.png">
-    <style>
-
-        body {
-            background-color: #faf8f3;
-        }
-        .states {
-            fill: #ccc;
-            stroke: #fff;
-        }
-
-        .tooltip {
-            position: absolute;
-            text-align: center;
-            width: auto;
-            height: auto;
-            padding: 5px;
-            font-family: "Roboto Condensed", "sans-serif";
-            font-weight: 400;
-            font-size: 14px;
-            background: #e0e2e2;
-            border: 0px;
-            border-radius: 8px;
-            pointer-events: none;
-        }
-
-        /*
-            Pie Charts
-        */
-        .arc text {
-            font-family: "Roboto Condensed", "sans-serif";
-            font-weight: 400;
-            font-size: 12px;
-            text-anchor: middle;
-        }
-
-        .arc path {
-            stroke: #fff;
-        }
-
-        .selectablePs {
-            padding: 5px;
-            display: inline-block;
-            cursor: pointer;
-            margin: auto;
-            font-family: "Amatic SC", "sans-serif";
-            font-weight: 700;
-            font-size: 24px;
-        }
-
-        .selectablePs:hover {
-            border-bottom: 1px dashed black;
-        }
-
-        .unselectablePs {
-            padding: 10px;
-            display: inline-block;
-            margin: auto;
-            font-family: "Amatic SC", "sans-serif";
-            font-weight: 700;
-            font-size: 24px;
-        }
-
-        .smallText {
-            display: inline;
-            font-family: "Roboto Condensed", "sans-serif";
-            font-weight: 400;
-            font-size: 15px;
-            line-height: 1.5;
-        }
-
-        .bigText {
-            display: inline;
-            font-family: "Roboto Condensed", "sans-serif";
-            font-weight: 700;
-            font-size: 17px;
-            line-height: 1.5;
-        }
-
-        .countryText {
-            display: inline;
-            font-family: "Roboto Condensed", "sans-serif";
-            font-weight: 700;
-            font-size: 20px;
-            line-height: 1.5;
-        }
-
-        #NunmbersPerCountry {
-            visibility: hidden;
-        }
-
-        a:link {
-            color: black;
-            text-decoration: none;
-        }
-
-        a:hover {
-            color: grey;
-            text-decoration: underline;
-        }
-
-        a:visited {
-            color: black;
-            text-decoration: none;
-        }
-
-
-
-        #chart {
-            width: 170px;
-            height: 140px;
-            float: right;
-        }
-
-        #info {
-            padding: 10px 15px 10px 15px;
-        }
-
-        #nextToChart {
-            float: left;
-            width: 160px;
-            height: auto;
-        }
-
-
-        #welcome {
-            visibility: visible;
-            position: absolute;
-        }
-
-        .person {
-            height: 15px;
-            width: auto;
-            margin-top: 8px;
-            margin-left: 10px;
-        }
-
-        #colourScale {
-            height: 70px;
-            width: auto;
-        }
-
-        .legendText {
-            position: absolute;
-            font-family: "Roboto Condensed", "sans-serif";
-            font-weight: 400;
-            margin-left: 23px;
-        }
-
-        #legendTop{
-            top: 0;
-            margin-top: 3px;
-        }
-
-        #legendBottom{
-            bottom: 0;
-            margin-bottom: 0;
-        }
-
-
-
-
-
-
-    </style>
-
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<div id="all" style="display: flex; justify-content: center; min-width: 950px; ">
-    <img id="logo2" src="img/headerLogo.png" style="height: 150px; float:left; margin-top: -15px;">
-    <div id="selectables2" style="display: flex; margin-top: 20px; height: 100px; padding:10px; ">
+<div id="all">
+    <img id="logo" src="img/headerLogo.png">
+    <div id="selectables">
         <p class="selectablePs" id="ThreatenedSpecies" onclick="setSelection('ThreatenedSpecies')">Endangered Species</p>
         <p class="unselectablePs">&nbsp;|&nbsp;</p>
-        <a class="selectablePs" id="Poverty" onclick="setSelection('Poverty')">Poverty</a>
+        <p class="selectablePs" id="Poverty" onclick="setSelection('Poverty')">Poverty</p>
         <p class="unselectablePs">&nbsp;|&nbsp;</p>
         <p class="selectablePs" id="Unemployment" onclick="setSelection('Unemployment')">Unemployment</p>
         <p class="unselectablePs">&nbsp;|&nbsp;</p>
-        <p class="selectablePs" id="ForestPercent" style="border-bottom: 1px solid black;"
-           onclick="setSelection('ForestPercent')">Deforestation</p>
+        <p class="selectablePs" id="ForestPercent" onclick="setSelection('ForestPercent')">Deforestation</p>
         <p class="unselectablePs">&nbsp;|&nbsp;</p>
         <p class="selectablePs" id="Agricultural" onclick="setSelection('Agricultural')">Agriculture</p>
         <p class="unselectablePs">&nbsp;|&nbsp;</p>
         <p class="selectablePs" id="LifeExpect" onclick="setSelection('LifeExpect')">Life Expectancy</p>
         <p class="unselectablePs">&nbsp;|&nbsp;</p>
-        <a class="selectablePs" id="PopDensity" onclick="setSelection('PopDensity')">Population Density</a>
+        <p class="selectablePs" id="PopDensity" style="border-bottom: 1px solid black;"
+           onclick="setSelection('PopDensity')">Population Density</p>
     </div>
 
-    <div id="content" style="position: absolute; top: 150px;">
-
-        <div id="map" style="border:1px solid #d3d3d3; height: 500px; width: 850px; overflow: hidden; float: left; "></div>
-        <div id="mapLegend" style="height: 70px; width: 150px; position: absolute; top: 420px; left: 10px;">
-            <img id="colourScale" src="img/ForestPercent.png">
+    <div id="content">
+        <div id="map"></div>
+        <div id="mapLegend">
+            <img id="colourScale" src="img/ThreatenedSpecies.png">
             <p class="legendText" id="legendTop">...</p>
             <p class="legendText" id="legendBottom">...</p>
         </div>
-
-        <div id="info"
-             style="border:1px solid #d3d3d3; width: 330px; height: 480px; float:left; background-color: white; margin-left: 10px;">
+        <div id="info">
             <div id="welcome">
                 <p id="textWelcome" class="bigText">Welcome</p><br>
-                <p id="textExplain" class="smallText">to the Endangered Species Information Visualisation!</p>
+                <span id="textExplain" class="smallText">to the Endangered Species Information Visualisation!</span><br><br>
+                <hr style="width:320px; margin:0;"><br>
+                <span class="smallText">This is a project implemented by <br><a href="mailto:sophie.masterthesis@gmail.com">Sophie Drummer</a> &
+                    <a href="mailto:messerer.da@gmail.com">David Messerer</a>. <br><br>
+                    <hr style="width:320px; margin:0;"><br>
+                    <p class="bigText">How to use it</p><br>To switch between different map data, select a tab above the map!
+                    <br> You can get information about a country by selecting it on the map. To identify the countries, hover them.
+                    <br> By clicking it once more, you can deselect it. Zoom & Pan is also possible! <br><br>
+                    <hr style="width:320px; margin:0;"><br>
+                    <p class="bigText">Data Sources</p><br><a href="http://www.iucnredlist.org/">Red list of threatened species</a>,
+                    <a href="https://data.worldbank.org/">The World Bank</a> & <a href="https://trade.cites.org//">the CITES Trade Database</a>
+                </span><br>
+                <p class="impressumText"><a class="links" href="impressum.html">Impressum</a></p>
             </div>
-            <div id="NunmbersPerCountry">
+            <div id="NumbersPerCountry">
                 <p id="textCountryName" class="countryText">...</p>
                 <p class="smallText">has</p>
                 <p id="TotalNumberSpecies" class="bigText">...</p>
@@ -213,80 +58,48 @@
                     <p id="ThreatenedNumberSpecies" class="bigText">...</p>
                     <p class="smallText">of them </p>
                     <p class="smallText">are classified as threatened.</p><br><br>
-
                     <p class="smallText">How endangered are they?</p>
-                    <img id="arrowPie" style="width: 38px; height: auto; float:right; margin-top:10px;" src="img/arrowPie2.png">
-                    <br><br>
-                    <p class="smallText">Deforestation: </p><br> <p id="ForestSQNumber" class="bigText">...</p><p class="smallText"> km²</p>
-                    <p class="smallText"> since 2000</p>
-
-                    <br>
-                    <div id="treeElement">
-                    </div>
-
+                    <img id="arrowPie" src="img/arrowPie2.png"><br><br>
+                    <p class="smallText">Deforestation: </p><br>
+                    <p id="ForestSQNumber" class="bigText">...</p><p class="smallText"> km²</p>
+                    <p class="smallText"> since 2000</p><br>
+                    <div id="treeElement"></div>
                     <hr style="margin:5px;">
                     <img class="person" src="img/tree.png">
-                    <p class="smallText">= 10.000 km² forest</p>
-                    <br><br>
-
+                    <p class="smallText">= 10.000 km² forest</p><br><br>
                     <p class="smallText" >Unemployment: </p>
-                    <p id="UnemploymentNumber" class="bigText">...</p><p class="smallText">%</p>
-                    <br><br>
-
-                    <div style="float:right; margin-left: 35px;">
+                    <p id="UnemploymentNumber" class="bigText">...</p>
+                    <p class="smallText">%</p><br><br>
+                    <div id="AgricultText">
                         <p class="smallText">Agriculture: </p>
-                        <p id="AgriculturalNumber" class="bigText">...</p><p class="smallText">%</p>
-
-                        <br><br>
+                        <p id="AgriculturalNumber" class="bigText">...</p>
+                        <p class="smallText">%</p><br><br>
                     </div>
-
-
                     <p class="smallText">&nbsp;&nbsp;&nbsp;&nbsp;Poverty: </p>
-                    <p id="PovertyNumber" class="bigText">...</p><p class="smallText">%</p>
-                    <br><br>
-
-
+                    <p id="PovertyNumber" class="bigText">...</p>
+                    <p class="smallText">%</p><br><br>
                 </div>
 
                 <div id="chart">
-
                     <div id="pie"></div><br>
-
-
-                    <div style="float:right; margin-right: 15px;">
+                    <div id="popDensSquare">
                         <p class="smallText">Population Density: </p><br>
-                        <p id="PopDensityNumber" class="bigText">...</p> <p class="smallText">(People/km²)</p>
-
-                        <div id="populationElement">
-                        </div>
+                        <p id="PopDensityNumber" class="bigText">...</p>
+                        <p class="smallText">(People/km²)</p>
+                        <div id="populationElement"></div>
                         <img class="person" src="img/person.png">
-                        <p class="smallText">= 10 persons</p>
-                        <br><br>
+                        <p class="smallText">= 10 persons</p><br><br>
                     </div>
-
-                    <div style="float: right; margin-right: 50px;">
-                    <p class="smallText" >Life Expectancy: </p><br>
-                    <p id="LifeExpectNumber" class="bigText">...</p><p class="smallText"> Years</p>
-                    <br><br>
+                    <div id="LifeExpectText">
+                        <p class="smallText" >Life Expectancy: </p><br>
+                        <p id="LifeExpectNumber" class="bigText">...</p>
+                        <p class="smallText"> Years</p><br><br>
                     </div>
-
-
-
-
-
-
                 </div>
-
-
-
-
             </div>
-
         </div>
     </div>
 </div>
-<!--div id="container1" style="border:1px dotted blue; width: 700px; height: 475px; position: relative;"></div-->
-<!--script src="/components/d3/d3.min.js"></script-->
 <script src="https://d3js.org/d3-array.v1.min.js"></script>
 <script src="https://d3js.org/d3-geo.v1.min.js"></script>
 <script src="https://d3js.org/d3-geo-projection.v2.min.js"></script>
@@ -301,92 +114,75 @@
     </defs>
 </svg>
 
-
 <script>
 
-    var width = 900,
-        height = 500,
-        pieSize = 150,
-        treeSize = 85;
+    /**
+     * -----------------------------------------------
+     * ----------------  Variables -------------------
+     * */
 
+    // Pie Charts (Endangered Species)
+    var pieSize = 150;
+
+    // Arcs (Animal Trade)
+    var arcdataTrade = [];
+    var arcdataTradeSelected = [];
+    var colorTrades = "Red";
+
+    // Country Information
+    var countryCodeCenters = [];
+    var countryCodes = [];
+
+    // Datasets
+    var selectedDataSet = 'PopDensity';
+    var oneCountrySelected = false;
+    var dataSet = [];
+    var selectedCountry = "None";
+    var selectedCountryCode = "";
+
+
+
+    /**
+     * --------------------------------------------------
+     * ------------------- Map Variables ----------------
+     * */
+
+    var width = 900,
+        height = 500;
+
+    // Styles stored (For Selecting & Deselecting countries)
+    var formerSelection;
+    var originalPatternStyle;
+
+    var selectionTooltip = "", selectionTooltipEnd = "";
 
     var projection = d3.geoNaturalEarth()
         .scale(175)
         .translate([width / 2, height / 2]);
 
-    var arcdataTrade = [];
-    var arcdataTradeSelected = [];
-
-    var countryCodeCenters = [];
-    var countryCodes = [];
-
-
-    var selectedDataSet = 'ForestPercent';
-    var dataSet = [];
-
-
-    /*
-     * lc = least concern
-     * nt = near threatened
-     * LR/cd = Lower Risk (conservation dependent)
-     * LR/nt = Lower Risk (near threatened)
-     * LR/lc = Lower Risk (least concern)
-     * vu = vulnerable
-     * en = endangered
-     * cr = critically endangered
-     * ew = extinct in the wild
-     * ex = extinct
-     * dd = data deficient
-     * ne = not evaluated
-     *
-     * */
-
-    var oneCountrySelected = false;
-    var selectedCountry = "None";
-    var selectedCountryCode = "";
-    var formerSelection;
-    var originalPatternStyle;
-
-    var colorTrades = "Red";
-
     var path = d3.geoPath()
         .projection(projection);
 
-    // dimensions
-    var dims = {
-        width: 1,
-        height: 1,
-        svg_dx: 1,
-        svg_dy: 1
-    };
-
     var zoom = d3.zoom()
-    //.translateTo([defaultTranslateX, defaultTranslateY])
-    //.scaleExtent([1, 8])
         .translateExtent([[0, 0], [width,height]])
         .scaleExtent([1,10])
         .on("zoom", zoomed);
 
+
+
+
+    /**
+     * ---------------------------------------------
+     * ------------------- SVGs --------------------
+     * */
+
+    // ------------------- Map ----------------
     var svg = d3.select("#map").append("svg")
         .attr("width", width)
         .attr('transform', 'translate(' + -50 + ')')
         .attr("height", height);
 
-    var svgPie = d3.select("#pie").append("svg")
-        .attr("width", pieSize)
-        .attr("height", pieSize);
-
-    svgPie.append("rect")
-        .attr("class", "back")
-        .attr("width", pieSize)
-        .attr("height", pieSize)
-        .attr("fill", "white")
-        .on("mouseover", function (d) {
-            tooltip.transition()
-                .duration(200)
-                .style("opacity", 0)
-        });
-
+    // Map Background (to reset Zoom & Tooltip)
     svg.append("rect")
         .attr("class", "back")
         .attr("width", width)
@@ -400,14 +196,25 @@
         });
 
 
+    // ------------ Pie Chart -------------------
+    var svgPie = d3.select("#pie").append("svg")
+        .attr("width", pieSize)
+        .attr("height", pieSize);
+
+    // Pie Chart Background (to reset Zoom & Tooltip)
+    svgPie.append("rect")
+        .attr("class", "back")
+        .attr("width", pieSize)
+        .attr("height", pieSize)
+        .attr("fill", "white")
+        .on("mouseover", function (d) {
+            tooltip.transition()
+                .duration(200)
+                .style("opacity", 0)
+        });
 
 
-
-
-    //* -------------------------------------------------
-
-    //* --------------- PopDensity for each country ---------------
-    // ------------------------------------------------------
+    // --------------- PopDensity for each country ---------------
 
     var svgPop = d3.select("#populationElement").append("svg")
         .attr("width", 110)
@@ -421,31 +228,46 @@
         .attr("stroke", "grey")
         .attr("stroke-width", 2)
         .attr("fill", "none");
-    //* -------------------------------------------------
 
+
+    // -------------------- States -------------------------
 
     var states = svg.append("g")
         .attr("id", "states");
 
     var g = svg.append("g"); // states, trades
-    var g1 = svgPie.append("g"); // Pie Chart
-
 
     svg
         .call(zoom); // delete this line to disable free zooming
 
+
+    // -------------------- Pie Chart -------------------------
+
+    var g1 = svgPie.append("g"); // Pie Chart
+
+
+
+    // ----------------- Arc (Animal Trades) ----------------------
+
     var arcsTrade = g.append("g")
         .attr("id", "arcsTrade");
+
+
+    // --------------------- Tooltip --------------------------
 
     var tooltip = d3.select("body").append("div")
         .attr("class", "tooltip")
         .style("opacity", 0);
 
 
-    // ----------------- Countries -------------------------------
+    /**
+     * ------------------------ Render Map ------------------------------------
+     * ------------------------------------------------------------------------
+     *  --------- get countries from countries.geo.json -----------------------
+     */
 
-    var selectionTooltip = "", selectionTooltipEnd = "";
-    setSelection('ForestPercent');
+
+    setSelection('PopDensity');
 
     d3.json("data/countries.geo.json", function (collection) {
         collectionX = collection;
@@ -458,12 +280,10 @@
             })
             .attr("class", "states")
             .style("fill", "gray")
-
             .on("click", clicked)
             .on("mouseover", function (d) {
                 var number = null;
                 dataSet.forEach(function (data){
-
                     var countryName = data.country;
                     if(selectedDataSet === "ThreatenedSpecies") {
                         countryName = getFromArrayByTwoDigits(countryCodeCenters, data.country);
@@ -471,7 +291,6 @@
                             countryName = countryName.codethree;
                         }
                     }
-
                     if (d.id === countryName && data.value != null) {
                             number = data.value;
                             number = parseFloat(number).toFixed(2);
@@ -501,15 +320,18 @@
                 codethree: coords.id,
                 center: getCenter(coords, coords.geometry.type).coordinates
             });
-
         });
     });
 
+
+
     function drawCountries() {
 
-        var col_range_low = "#85006e" ;
-        var col_range_high = "#00ef3e";
+        var col_range_low;
+        var col_range_high;
         var legendUnit = "";
+        var tempDataset=[];
+        var color;
 
         switch (selectedDataSet) {
             case "ForestPercent":
@@ -558,35 +380,23 @@
                 break;
         }
 
-
-        tempDataset=[];
         dataSet.forEach(function (value) {
-
             if(value.value!=null && value.value != 0)
             {
-                //REMOVE MACAU
-                if(value.value > 1500)
-                {
+                if(value.value > 1500) {
                     value.value = 0;
                 }
-
-                console.log(value.value);
                 tempDataset.push(value.value)
             }
         });
+
         var range_low = Math.min.apply(null, tempDataset),
             range_high = Math.max.apply(null, tempDataset);
-
 
         document.getElementById("legendTop").innerHTML = (range_high).toFixed(1) + legendUnit;
         document.getElementById("legendBottom").innerHTML = (range_low).toFixed(1) + legendUnit;
 
-        console.log("RANGE LOW" + range_low);
-        console.log("RANGE_HIGH" + range_high);
-        var color;
-
-        if (selectedDataSet == "PopDensity" )
-        {
+        if (selectedDataSet == "PopDensity" ) {
             color = d3.scaleLinear()
                 .range([col_range_low, col_range_high])
                 .domain([range_low, 200])
@@ -598,7 +408,6 @@
                 .range([col_range_low, col_range_high])
                 .domain([range_low, range_high])
                 .interpolate(d3.interpolateCubehelix);
-
         }
 
         else {
@@ -606,33 +415,23 @@
                 .range([col_range_low, col_range_high])
                 .domain([range_low, range_high])
                 .interpolate(d3.interpolateLab);
-
-
-
         }
-
 
         g.selectAll("path")
             .style("fill", function (d) {
                 var colorN;
-
                 for (var i = 0; i < dataSet.length; i++) {
-
                     var countryName = dataSet[i].country;
-
                     if(selectedDataSet === "ThreatenedSpecies") {
                         countryName = getFromArrayByTwoDigits(countryCodeCenters, dataSet[i].country);
                         if(countryName != null) {
                             countryName = countryName.codethree;
                         }
                     }
-
                     if (d.id === countryName && dataSet[i].value != null) {
-
                         if(selectedCountryCode == countryName ){
                             originalPatternStyle = color(dataSet[i].value);
                         }
-
                         colorN = color(dataSet[i].value);
                         break;
                     }
@@ -645,7 +444,6 @@
                         break;
                     }
                 }
-
                 return colorN;
             });
 
@@ -653,34 +451,43 @@
         if (formerSelection != null && selectedCountry != "None") {
             drawPattern(formerSelection);
         }
-
         viewTradesOfCountry();
-
     }
 
 
-    // --------------- Zoom & Pan functionality -----------------------------
+    d3.csv("/data/cc2digit.csv", function (codes) {
+        codes.forEach(function (code) {
+            countryCodes.push({countryname: code.Name, countrycode2: code.Code});
+        });
+    });
 
+
+    /**
+     * ------------------------------------------------------------------------
+     *  ---------------------- Zoom & Pan functionality -----------------------
+     */
 
     function zoomed() {
         g.style("stroke-width", 1.5 / d3.event.transform.k + "px");
-        g.attr("transform", d3.event.transform); // updated for d3 v4
-
+        g.attr("transform", d3.event.transform);
     }
 
     function reset() {
-
         svg.transition()
             .duration(750)
             .call(zoom.transform, d3.zoomIdentity);
     }
 
 
-    // --------------- Select Option for country backgrounds -----------------------------
+
+
+    /**
+     * --------------------------------- Select Tab -------------------------------
+     * ----------------------------------------------------------------------------
+     *  ---------------- changes Map colours, Text, Values, etc. ------------------
+     */
 
     function setSelection(selection) {
-
-        console.log(countryCodeCenters);
 
         switch (selection) {
             case "ForestPercent":
@@ -718,31 +525,28 @@
         document.getElementById(selectedDataSet).style.borderBottom = null; // set former selection back to default
         document.getElementById(selection).style.borderBottom = "1px solid"; // set new selection to selected style
 
-
         selectedDataSet = selection;
-
         document.getElementById("colourScale").src = "/img/"+selectedDataSet+".png";
 
         //empty dataset to store new Data in it.
         dataSet = [];
         g.selectAll("path.arcsTrade").remove();
 
-
         var fileName = "/data/" + selection + ".csv";
         d3.csv(fileName, function (countries) {
             countries.forEach(function (country) {
                 var cName = country["Country Code"];
-                //var startArea = country["2000"];
-
                 var startArea = null;
                 var endArea = null;
+                var val;
+
+
 
                 for (var j = 2015; j > 2005; --j) {
                     if (country[j.toString()] != null && country[j.toString()] != "") {
                         endArea = country[j.toString()];
                         break;
                     }
-
                 }
                 for (var i = 2000; i > 1990; --i) {
                     if (country[i.toString()] != null && country[i.toString()] != "") {
@@ -750,84 +554,60 @@
                         break;
                     }
                 }
-                var val;
 
                 // For Deforestation calculate Difference between 2015 & 2000!
                 if (selection == 'ForestPercent') {
                     val = endArea - startArea;
                 }
                 else if (selection == 'ThreatenedSpecies') {
-                    console.log(country["NumberThrSpecies"]);
                     var threat = country["NumberThrSpecies"];
                     var total = country["Total"];
                     val = (threat *100) / total; //percent (threatened) of total species
-                    console.log(val);
                 }
                 else {
                     val = endArea;
                 }
 
-                //if (val != null) { //if the country codes are available!
-                    dataSet.push({
-                        country: cName,
-                        value: val
-                    });
-                //}
-
-
+                dataSet.push({
+                    country: cName,
+                    value: val
+                });
             });
-
             drawCountries();
-
-        });
-
-
-        d3.csv("/data/ForestPercent.csv", function (countries) {
-            countries.forEach(function (country) {
-                if (country["Country Code"] == selection.country) {
-                    var endArea = null;
-                    for (var j = 2015; j > 2005; --j) {
-                        if (country[j.toString()] != null && country[j.toString()] != "") {
-                            endArea = country[j.toString()];
-                            break;
-                        }
-
-                    }
-
-                    selectedDataSet.push({
-                        country: selection.country,
-                        deforestationStart: startArea,
-                        deforestationEnd: endArea
-                    });
-                }
-
-        });
         });
      }
 
 
 
-    // --------------------- Click functionality -----------------------------
+    /**
+     * ------------------------ Click functionality -------------------------------
+     * ----------------------------------------------------------------------------
+     *  ---------------- select & deselect country to view info -------------------
+     */
 
     function clicked(d) {
 
         var selection = d3.select(this);
         var countrycode = getFromArrayByCountryName(countryCodes, d.properties.name).countrycode2;
+
+        // while loading numbers show ...
         document.getElementById("TotalNumberSpecies").innerHTML = "...";
         document.getElementById("ThreatenedNumberSpecies").innerHTML = "...";
+        document.getElementById("UnemploymentNumber").innerHTML = "...";
+        document.getElementById("PovertyNumber").innerHTML = "...";
+        document.getElementById("AgriculturalNumber").innerHTML = "...";
+        document.getElementById("ForestSQNumber").innerHTML = "...";
+        document.getElementById("LifeExpectNumber").innerHTML = "...";
+        document.getElementById("PopDensityNumber").innerHTML = "...";
 
         // Case: No Country is selected yet, the one that gets clicked => gets selected!
         if (oneCountrySelected == false && d.properties.name != selectedCountry) {
-
             selectedCountry = d.properties.name;
             selectedCountryCode = d.id;
             formerSelection = selection;
             originalPatternStyle = selection.style("fill");
-
             drawPattern(selection);
-
             oneCountrySelected = true;
-
             startPieChartRequest(countrycode);
             writeCountryTradesToArray(d);
             viewTradesOfCountry();
@@ -836,41 +616,29 @@
 
         // Case: One Country is already selected, this one gets clicked again => deselect it!
         else if (oneCountrySelected == true && d.properties.name == selectedCountry) {
-
             deselectCountry(selection);
-
             selectedCountry = "None";
             oneCountrySelected = false;
             selection.classed("selected", false);
-
             changeInfoText(d, false);
-
             d3.selectAll("#pieA").remove();
             d3.selectAll("#pieB").remove();
-
         }
 
         // Case: One Country is already selected, another one gets clicked => deselect it and select new one!
         else if (oneCountrySelected == true && d.properties.name != selectedCountry) {
-
             deselectCountry(selection);
             formerSelection = selection;
             originalPatternStyle = formerSelection.style("fill");
             selectedCountry = d.properties.name;
-
             oneCountrySelected = true;
-
             d3.selectAll("#pieA").remove();
             d3.selectAll("#pieB").remove();
-
             writeCountryTradesToArray(d);
             viewTradesOfCountry();
             changeInfoText(d, true);
-
             drawPattern(selection);
-
             startPieChartRequest(countrycode);
-
         }
     }
 
@@ -878,15 +646,12 @@
 
         //empty Trade Data Array !
         arcdataTradeSelected = [];
-
         if (formerSelection.classed("selected")) {
             formerSelection.classed("selected", false);
         }
         formerSelection.style("fill", originalPatternStyle);
-
-        g.selectAll("path.arcsTrade").remove();
+        g.selectAll("path.arcsTrade").remove(); // delete all trades
         selection.classed("selected", false);
-
         originalPatternStyle = formerSelection.style("fill");
     }
 
@@ -897,14 +662,37 @@
     }
 
 
-    // --------------------- PIE CHARTS  -----------------------------
+    /**
+     * --------------------------------- Pie Charts -------------------------------
+     * ----------------------------------------------------------------------------
+     *  --------------------- request from the Red List API -----------------------
+     */
 
     var token = "?token=a3ebe73f8459887d1af2a0aec76c95a8ed620106ce7181b396648f07a8fba39b";
     var requestSpeciesCountry = "country/getspecies/";
     var url = "http://apiv3.iucnredlist.org/api/v3/";
 
-    // Function to get Number of Threatened Species per Country from the RedListApi (to write it to csv file)
-    function makeRequest () {
+    /** Conservation Status Explanations:
+     *
+     * lc = least concern
+     * nt = near threatened
+     * LR/cd = Lower Risk (conservation dependent)
+     * LR/nt = Lower Risk (near threatened)
+     * LR/lc = Lower Risk (least concern)
+     * vu = vulnerable
+     * en = endangered
+     * cr = critically endangered
+     * ew = extinct in the wild
+     * ex = extinct
+     * dd = data deficient
+     * ne = not evaluated
+     *
+     * */
+
+    /**
+     * Function to get Number of Threatened Species per Country from the RedListApi (to write it to csv file)
+     */
+    /*function makeRequest () {
         var datasetX = [];
         var l = 0;
         countryCodes.forEach(function (country) {
@@ -943,7 +731,6 @@
                     }
 
                 });
-                console.log(l);
 
                 var arrayFirst = [country.countrycode2, "'"+sumThreat+"'", "'"+total+"'"];
                 datasetX.push(arrayFirst);
@@ -962,13 +749,16 @@
                 l += 1;
             });
         });
-    }
+    }*/
 
     function startPieChartRequest(twoDigits) {
 
         var lc = 0;
         var ne = 0;
         var dd = 0;
+        var total = 0;
+        var sumThreat = 0;
+        var radiusPie = 75;
         var dataset = [
             {label: "NT", count: 0},
             {label: "VU", count: 0},
@@ -976,12 +766,8 @@
             {label: "CR", count: 0},
             {label: "EW", count: 0},
             {label: "EX", count: 0}];
-        var total = 0;
-        var sumThreat = 0;
-
-
-        var radiusPie = 75;
         var colorPie = d3.scaleOrdinal(['#F5FF00', '#FFD200', '#FF9C01', '#F52401', '#F53B65', '#9D2025']);
+
         var pie = d3.pie()
             .sort(null)
             .value(function (d) {
@@ -991,7 +777,6 @@
         var pathPie = d3.arc()
             .outerRadius(radiusPie - 10)
             .innerRadius(0);
-
 
         var label = d3.arc()
             .outerRadius(radiusPie - 40)
@@ -1039,7 +824,6 @@
                         break;
                 }
 
-
                 document.getElementById("TotalNumberSpecies").innerHTML = total;
                 document.getElementById("ThreatenedNumberSpecies").innerHTML = (((sumThreat)*100) / total).toFixed(2) + "%";
             });
@@ -1048,8 +832,7 @@
                 .data(pie(dataset))
                 .enter().append("g")
                 .attr("id", "pieA")
-                .attr("class", "arc").attr('transform', 'translate(' + radiusPie +
-                    ',' + radiusPie + ')')
+                .attr("class", "arc").attr('transform', 'translate(' + radiusPie + ',' + radiusPie + ')')
                 .on("mouseover", function (d) {
                     var textStatus;
                     var percent = (d.data.count/sumThreat) * 100;
@@ -1077,7 +860,7 @@
                     tooltip.transition()
                         .duration(200)
                         .style("opacity", .9);
-                    tooltip.html(textStatus + ": " + (percent).toFixed(1) +"%")
+                    tooltip.html(textStatus + ": " + (percent).toFixed(1) +"% = " + d.data.count + " Species")
                         .style("left", (d3.event.pageX) + "px")
                         .style("top", (d3.event.pageY - 28) + "px");
                 });
@@ -1100,14 +883,207 @@
                         return d.data.label;
                     }
                 });
-
         });
-
-
-
-
     }
 
+    function changeInfoText(d, selectedBool) {
+
+        var selectionData = {Country: null, Deforestation: null, Poverty: null, PopDensity: null, Unemployment: null};
+        d3.selectAll("#person").remove();
+
+        function drawPeople (number) {
+            var y = 0;
+            var x = 0;
+            var widthPerson = 18, heightPerson = 46;
+
+            if (number > 10) {
+                number = number / 10;
+            }
+            else { number = 1;}
+
+            for (var i = 0; i<number; i++){
+                if (i % 10 == 0 && i != 0){
+                    y += 1;
+                    x = 0;
+                }
+                if(i < 39 ) {
+                    svgPop.append("svg:image")
+                        .attr("id", "person")
+                        .attr("xlink:href", "img/person.png")
+                        .attr('height', heightPerson / 2)
+                        .attr('width', widthPerson / 2)
+                        .attr('transform', 'translate( ' + (x * (widthPerson / 1.8) + 5 ) + ', ' + (y * (heightPerson / 1.8) + 5) + ')')
+                }
+                else if (i == 39) {svgPop.append("svg:image")
+                    .attr("id", "person")
+                    .attr("xlink:href", "img/dotdotdot.png")
+                    .attr('height', heightPerson / 2)
+                    .attr('width', widthPerson / 2)
+                    .attr('transform', 'translate( ' + (x * (widthPerson / 1.8) + 5 ) + ', ' + (y * (heightPerson / 1.8) + 5) + ')')
+                }
+                x += 1;
+            }
+        }
+
+        function drawTrees (number) {
+            var treeSvgWidth = 30;
+            var svgCalcNumber = Math.abs(number);
+            var widthTree = 28, heightTree = 30;
+            var y = 0;
+            var x = 0;
+
+            for (var k = 0; k<svgCalcNumber; k++) {
+                if (k % 70000 == 0 && k != 0 && k < 280000) {
+                    treeSvgWidth += 20;
+                }
+                else if (k > 280000){ treeSvgWidth  = 90}
+            }
+            d3.selectAll("#treeContainer").remove();
+
+            var svgTree = d3.select("#treeElement").append("svg")
+                .attr("width", 135)
+                .attr("id", "treeContainer")
+                .attr('transform', 'translate( 0, 5)')
+                .attr("height", treeSvgWidth);
+
+            if (number > 1000 || number < -1000) {
+                number = number / 10000;
+            } else if (number > 0 && number <= 1000) {
+                number = 1;
+            } else if (number < 0 && number >= -1000) {
+                number = -1;
+            }
+
+            if(number > 0) {
+                for (var i = 0; i<number; i++) {
+                    if (i % 7 == 0 && i != 0) {
+                        y += 1;
+                        x = 0;
+                    }
+                    if (i < 27) {
+                        svgTree.append("svg:image")
+                            .attr("id", "person")
+                            .attr("xlink:href", "img/treeGreen.png")
+                            .attr('height', heightTree / 1.5)
+                            .attr('width', widthTree / 1.5)
+                            .attr('transform', 'translate( ' + (x * (widthTree / 1.5) + 5 ) + ', ' + (y * (heightTree / 1.5) + 5) + ')')
+
+                    } else if (i == 27) {
+                        svgTree.append("svg:image")
+                            .attr("id", "person")
+                            .attr("xlink:href", "img/dotdotdot.png")
+                            .attr('height', heightTree / 1.5)
+                            .attr('width', widthTree / 1.5)
+                            .attr('transform', 'translate( ' + (x * (widthTree / 1.5) + 5 ) + ', ' + (y * (heightTree / 1.5) + 5) + ')')
+                    }
+                    x += 1;
+                }
+            }
+            else if(number < 0) {
+                for (var j = 0; j>number; --j) {
+
+                    if (j % 7 == 0 && j != 0) {
+                        y += 1;
+                        x = 0;
+                    }
+                    if (j > -27) {
+                        svgTree.append("svg:image")
+                            .attr("id", "person")
+                            .attr("xlink:href", "img/treeRed.png")
+                            .attr('height', heightTree / 1.5)
+                            .attr('width', widthTree / 1.5)
+                            .attr('transform', 'translate( ' + (x * (widthTree / 1.5) + 5 ) + ', ' + (y * (heightTree / 1.5) + 5) + ')')
+
+                    } else if (j == -27) {
+                        svgTree.append("svg:image")
+                            .attr("id", "person")
+                            .attr("xlink:href", "img/dotdotdot.png")
+                            .attr('height', heightTree / 1.5)
+                            .attr('width', widthTree / 1.5)
+                            .attr('transform', 'translate( ' + (x * (widthTree / 1.5) + 5 ) + ', ' + (y * (heightTree / 1.5) + 5) + ')')
+                    }
+                    x += 1;
+                }
+            }
+        }
+
+        function getDataFromFilePerCountry(DataSet) {
+            d3.csv("/data/"+ DataSet +".csv", function (countries) {
+                countries.forEach(function (country) {
+                    if (country["Country Code"] == d.id) {
+                        var endData = null;
+                        var yearData = null;
+                        var startData = null;
+                        var val;
+                        for (var j = 2015; j > 2005; --j) {
+                            if (country[j.toString()] != null && country[j.toString()] != "") {
+                                endData = country[j.toString()];
+                                yearData = j;
+                                break;
+                            }
+                        }
+                        for (var i = 2000; i > 1990; --i) {
+                            if (country[i.toString()] != null && country[i.toString()] != "") {
+                                startData = country[i.toString()];
+                                break;
+                            }
+                        }
+
+                        // For Deforestation calculate Difference between 2015 & 2000 (Square Kilometers!)
+                        if (DataSet == 'ForestSQ') {
+                            val = endData - startData;
+                        }
+                        else {
+                            val = endData;
+                        }
+                        selectionData[DataSet] = val;
+                    }
+                });
+                if (selectionData[DataSet] != null) {
+                    var value = selectionData[DataSet];
+                    if (DataSet != 'ForestSQ') {
+                        value = parseFloat(value).toFixed(1);
+                    } else {
+                        value = parseFloat(value);
+                    }
+                    document.getElementById(DataSet+"Number").innerHTML = value ;
+                    if(DataSet == 'PopDensity'){
+                        drawPeople(parseFloat(value).toFixed(1));
+                    } else if(DataSet == 'ForestSQ'){
+                        drawTrees(parseFloat(value).toFixed(1));
+                    }
+                }
+                else {
+                    document.getElementById(DataSet+"Number").innerHTML ="No Data";
+                }
+            });
+        }
+
+        if (selectedBool == true) {
+            document.getElementById("textCountryName").innerHTML = d.properties.name;
+            document.getElementById("NumbersPerCountry").style.visibility = "visible";
+            document.getElementById("welcome").style.visibility = "hidden";
+
+            getDataFromFilePerCountry("Agricultural");
+            getDataFromFilePerCountry("ForestSQ");
+            getDataFromFilePerCountry("PopDensity");
+            getDataFromFilePerCountry("Unemployment");
+            getDataFromFilePerCountry("Poverty");
+            getDataFromFilePerCountry("LifeExpect");
+
+        } else {
+            document.getElementById("textCountryName").innerHTML = "Select a country to see the trades";
+            document.getElementById("NumbersPerCountry").style.visibility = "hidden";
+            document.getElementById("welcome").style.visibility = "visible";
+        }
+    }
+
+
+    /**
+     * ------------------------------ Animal Trades ------------------------------------
+     * ---------------------------------------------------------------------------------
+     *  ----- show them as Arcs (from Exporter(selected country) to Importer) ----------
+     */
 
     function writeCountryTradesToArray(d) {
 
@@ -1121,7 +1097,6 @@
                 importQuants = trade.importQuant;
 
             if (exporter == d.properties.name) {
-
                 countByCountry[importer] = (countByCountry[importer] || 0) + 1;
                 arcdataTradeSelected.push({
                     exportCountry: exporter, importCountry: importer,
@@ -1144,240 +1119,16 @@
             .style("stroke", colorTrades)
             .style("fill", "none")
             .style("stroke-width", function (d) {
-
                 if (d.importPerCountry == null || d.importPerCountry <= 5) return 1;
                 else if (d.importPerCountry > 5 || d.importPerCountry <= 10) return 2;
                 else if (d.importPerCountry > 10 || d.importPerCountry <= 25) return 3;
                 else if (d.importPerCountry > 25 || d.importPerCountry <= 50) return 5;
                 else if (d.importPerCountry > 50) return 10;
-                // A bend of 5 looks nice and subtle, but this will depend on the length of your arcs and the visual look your visualization requires. Higher number equals less bend.
             })
             .attr('d', function (d) {
-                return lngLatToArc(d, 'exportLocation', 'importLocation', 0); // A bend of 5 looks nice and subtle, but this will depend on the length of your arcs and the visual look your visualization requires. Higher number equals less bend.
+                return lngLatToArc(d, 'exportLocation', 'importLocation', 0);
             });
     }
-
-
-    function changeInfoText(d, selectedBool) {
-
-
-        var selectionData = {Country: null, Deforestation: null, Poverty: null, PopDensity: null, Unemployment: null};
-
-        d3.selectAll("#person").remove();
-
-        function drawPeople (number) {
-
-            var widthPerson = 18, heightPerson = 46;
-            if (number > 10) {
-                number = number / 10;
-            }
-            else { number = 1;}
-
-            var y = 0;
-            var x = 0;
-            for (var i = 0; i<number; i++){
-
-
-                if (i % 10 == 0 && i != 0){
-                    y += 1;
-                    x = 0;
-                }
-
-                if(i < 39 ) {
-
-                    svgPop.append("svg:image")
-                        .attr("id", "person")
-                        .attr("xlink:href", "img/person.png")
-                        .attr('height', heightPerson / 2)
-                        .attr('width', widthPerson / 2)
-                        .attr('transform', 'translate( ' + (x * (widthPerson / 1.8) + 5 ) + ', ' + (y * (heightPerson / 1.8) + 5) + ')')
-
-                }
-                else if (i == 39) {svgPop.append("svg:image")
-                    .attr("id", "person")
-                    .attr("xlink:href", "img/dotdotdot.png")
-                    .attr('height', heightPerson / 2)
-                    .attr('width', widthPerson / 2)
-                    .attr('transform', 'translate( ' + (x * (widthPerson / 1.8) + 5 ) + ', ' + (y * (heightPerson / 1.8) + 5) + ')')
-                }
-                x += 1;
-
-            }
-
-        }
-
-        function drawTrees (number) {
-
-            var treeSvgWidth = 30;
-            var svgCalcNumber = Math.abs(number);
-            for (var k = 0; k<svgCalcNumber; k++) {
-                if (k % 70000 == 0 && k != 0 && k < 280000) {
-                    treeSvgWidth += 20;
-                }
-                else if (k > 280000){ treeSvgWidth  = 90}
-            }
-            d3.selectAll("#treeContainer").remove();
-
-            var svgTree = d3.select("#treeElement").append("svg")
-                .attr("width", 135)
-                .attr("id", "treeContainer")
-                .attr('transform', 'translate( 0, 5)')
-                .attr("height", treeSvgWidth);
-
-            var widthTree = 28, heightTree = 30;
-            if (number > 1000 || number < -1000) {
-                number = number / 10000;
-            }
-            else if (number > 0 && number <= 1000) {
-                number = 1;
-            }
-            else if (number < 0 && number >= -1000) {
-                number = -1;
-            }
-
-            var y = 0;
-            var x = 0;
-            if(number > 0) {
-                for (var i = 0; i<number; i++) {
-
-                    if (i % 7 == 0 && i != 0) {
-                        y += 1;
-                        x = 0;
-                    }
-
-                    if (i < 27) {
-
-                        svgTree.append("svg:image")
-                            .attr("id", "person")
-                            .attr("xlink:href", "img/treeGreen.png")
-                            .attr('height', heightTree / 1.5)
-                            .attr('width', widthTree / 1.5)
-                            .attr('transform', 'translate( ' + (x * (widthTree / 1.5) + 5 ) + ', ' + (y * (heightTree / 1.5) + 5) + ')')
-
-                    }
-                    else if (i == 27) {
-                        svgTree.append("svg:image")
-                            .attr("id", "person")
-                            .attr("xlink:href", "img/dotdotdot.png")
-                            .attr('height', heightTree / 1.5)
-                            .attr('width', widthTree / 1.5)
-                            .attr('transform', 'translate( ' + (x * (widthTree / 1.5) + 5 ) + ', ' + (y * (heightTree / 1.5) + 5) + ')')
-                    }
-                    x += 1;
-                }
-            }
-            else if(number < 0) {
-                for (var j = 0; j>number; --j) {
-
-                    if (j % 7 == 0 && j != 0) {
-                        y += 1;
-                        x = 0;
-                    }
-
-                    if (j > -27) {
-
-                        svgTree.append("svg:image")
-                            .attr("id", "person")
-                            .attr("xlink:href", "img/treeRed.png")
-                            .attr('height', heightTree / 1.5)
-                            .attr('width', widthTree / 1.5)
-                            .attr('transform', 'translate( ' + (x * (widthTree / 1.5) + 5 ) + ', ' + (y * (heightTree / 1.5) + 5) + ')')
-
-                    }
-                    else if (j == -27) {
-                        svgTree.append("svg:image")
-                            .attr("id", "person")
-                            .attr("xlink:href", "img/dotdotdot.png")
-                            .attr('height', heightTree / 1.5)
-                            .attr('width', widthTree / 1.5)
-                            .attr('transform', 'translate( ' + (x * (widthTree / 1.5) + 5 ) + ', ' + (y * (heightTree / 1.5) + 5) + ')')
-                    }
-                    x += 1;
-                }
-            }
-
-        }
-
-        function getDataFromFilePerCountry(DataSet) {
-            d3.csv("/data/"+ DataSet +".csv", function (countries) {
-                countries.forEach(function (country) {
-                    if (country["Country Code"] == d.id) {
-                        var endData = null;
-                        var yearData = null;
-                        var startData = null;
-                        for (var j = 2015; j > 2005; --j) {
-                            if (country[j.toString()] != null && country[j.toString()] != "") {
-                                endData = country[j.toString()];
-                                yearData = j;
-                                break;
-                            }
-                        }
-                        for (var i = 2000; i > 1990; --i) {
-                            if (country[i.toString()] != null && country[i.toString()] != "") {
-                                startData = country[i.toString()];
-                                break;
-                            }
-                        }
-                        var val;
-
-                        // For Deforestation calculate Difference between 2015 & 2000 (Square Kilometers!)
-                        if (DataSet == 'ForestSQ') {
-                            val = endData - startData;
-                        }
-                        else {
-                            val = endData;
-                        }
-                        selectionData[DataSet] = val;
-                    }
-
-                });
-                if (selectionData[DataSet] != null) {
-                    var value = selectionData[DataSet];
-                    if (DataSet != 'ForestSQ') {
-                        value = parseFloat(value).toFixed(1);
-                    }
-                    else {
-                        value = parseFloat(value);
-                    }
-                    document.getElementById(DataSet+"Number").innerHTML = value ;
-                    if(DataSet == 'PopDensity'){
-                        drawPeople(parseFloat(value).toFixed(1));
-                    }
-                    else if(DataSet == 'ForestSQ'){
-                        drawTrees(parseFloat(value).toFixed(1));
-                    }
-                }
-                else {
-                    document.getElementById(DataSet+"Number").innerHTML ="No Data";
-                }
-            });
-        }
-
-        if (selectedBool == true) {
-            document.getElementById("textCountryName").innerHTML = d.properties.name;
-            document.getElementById("NunmbersPerCountry").style.visibility = "visible";
-            document.getElementById("welcome").style.visibility = "hidden";
-
-
-            getDataFromFilePerCountry("Agricultural");
-            getDataFromFilePerCountry("ForestSQ");
-            getDataFromFilePerCountry("PopDensity");
-            getDataFromFilePerCountry("Unemployment");
-            getDataFromFilePerCountry("Poverty");
-            getDataFromFilePerCountry("LifeExpect");
-
-
-
-        }
-        else {
-            document.getElementById("textCountryName").innerHTML = "Select a country to see the trades";
-            document.getElementById("NunmbersPerCountry").style.visibility = "hidden";
-            document.getElementById("welcome").style.visibility = "visible";
-        }
-    }
-
-    // ----------------------------- DATA (Animal Trades)-----------------------------------------
-
 
     d3.csv("/data/animalTrade.csv", function (trades) {
         var linksByExporter = {};
@@ -1387,7 +1138,6 @@
                 exporter = trade.Exporter,
                 quantityImp = trade['Importer reported quantity'], //empty spaces!!!
                 links = linksByExporter[exporter] || (linksByExporter[exporter] = []);
-
 
             links.push({exportCountry: exporter, importCountry: importer});
             var exportInfo = getFromArrayByTwoDigits(countryCodeCenters, exporter);
@@ -1400,40 +1150,21 @@
                     importLocation: importInfo.center,
                     importQuant: quantityImp
                 });
-
             }
         });
-        console.log(arcdataTrade); //shows if loading was successfull...
-
     });
 
-    /*rename of Russian Federation -> Russia
-     Congo, the Democratic Republic of the -> Democratic Republic of the Congo
-     United States -> United States of America
-     "Bolivia, Plurinational State of -> Bolivia
-     Venezuela, Bolivarian Republic of -> Venezuela
-     Syrian Arab Republic -> Syria
-     Tanzania, United Republic of -> United Republic of Tanzania
-     Côte d'Ivoire -> Ivory Coast
-     Iran, Islamic Republic of -> Iran
-     Viet Nam -> Vietnam
-     Korea, Republic of -> South Korea
-     Korea, Democratic People's Republic of -> North Korea
-     Taiwan, Province of China -> Taiwan
+
+    /**
+     * ------------------- Center, Country Codes, Country Names ------------------------
+     * ---------------------------------------------------------------------------------
      */
-    d3.csv("/data/cc2digit.csv", function (codes) {
-        codes.forEach(function (code) {
-            countryCodes.push({countryname: code.Name, countrycode2: code.Code});
-        });
-        console.log(countryCodes);
-        console.log(countryCodes.length);
-    });
 
-
-    // ----------------------------- Functions -----------------------------------------
 
     function getCenter(polygon, geometryType) {
-        if ('geometry' in polygon) polygon = polygon.geometry
+        if ('geometry' in polygon) {
+            polygon = polygon.geometry;
+        }
 
         if (!Array.isArray(polygon)) {
             if (geometryType == "Polygon") {
@@ -1458,7 +1189,6 @@
             }
         }
 
-
         var minx = miny = 1000, maxx = maxy = -1000;
         for (var i = 0; i < polygon.length; i++) {
             var point = polygon[i];
@@ -1480,6 +1210,7 @@
         }
     }
 
+
     function getFromArrayByCountryName(arr, value) {
 
         var result = [];
@@ -1500,16 +1231,12 @@
     }
 
 
-    // ----------------------------- Center of Country -----------------------------------------
+    /** ----------------------------- Center of Country -----------------------------------------
+     * ------------- calculate the center of each country for start & endpoint of arc -----------
+     */
 
-    // This function takes an object, the key names where it will find an array of lng/lat pairs, e.g. `[-74, 40]`
-    // And a bend parameter for how much bend you want in your arcs, the higher the number, the less bend.
     function lngLatToArc(d, sourceName, targetName, bend) {
-        // If no bend is supplied, then do the plain square root
-        //console.log(d);
         bend = bend || 1;
-        // `d[sourceName]` and `d[targetname]` are arrays of `[lng, lat]`
-        // Note, people often put these in lat then lng, but mathematically we want x then y which is `lng,lat`
 
         var sourceLngLat = d[sourceName],
             targetLngLat = d[targetName];
@@ -1518,8 +1245,6 @@
             var sourceXY = projection(sourceLngLat),
                 targetXY = projection(targetLngLat);
 
-            // Uncomment this for testing, useful to see if you have any null lng/lat values
-            // if (!targetXY) console.log(d, targetLngLat, targetXY)
             var sourceX = sourceXY[0],
                 sourceY = sourceXY[1];
 
@@ -1530,7 +1255,6 @@
                 dy = targetY - sourceY,
                 dr = Math.sqrt(dx * dx + dy * dy) * bend;
 
-            // To avoid a whirlpool effect, make the bend direction consistent regardless of whether the source is east or west of the target
             var west_of_source = (targetX - sourceX) < 0;
             if (west_of_source) return "M" + targetX + "," + targetY + "A" + dr + "," + dr + " 0 0,1 " + sourceX + "," + sourceY;
             return "M" + sourceX + "," + sourceY + "A" + dr + "," + dr + " 0 0,1 " + targetX + "," + targetY;
