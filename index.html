@@ -139,6 +139,28 @@
             margin-left: 10px;
         }
 
+        #colourScale {
+            height: 70px;
+            width: auto;
+        }
+
+        .legendText {
+            position: absolute;
+            font-family: "Roboto Condensed", "sans-serif";
+            font-weight: 400;
+            margin-left: 23px;
+        }
+
+        #legendTop{
+            top: 0;
+            margin-top: 3px;
+        }
+
+        #legendBottom{
+            bottom: 0;
+            margin-bottom: 0;
+        }
+
 
 
 
@@ -168,8 +190,13 @@
     </div>
 
     <div id="content" style="position: absolute; top: 150px;">
-        <div id="map"
-             style="border:1px solid #d3d3d3; height: 500px; width: 850px; overflow: hidden; float: left; "></div>
+
+        <div id="map" style="border:1px solid #d3d3d3; height: 500px; width: 850px; overflow: hidden; float: left; "></div>
+        <div id="mapLegend" style="height: 70px; width: 150px; position: absolute; top: 420px; left: 10px;">
+            <img id="colourScale" src="img/ForestPercent.png">
+            <p class="legendText" id="legendTop">...</p>
+            <p class="legendText" id="legendBottom">...</p>
+        </div>
 
         <div id="info"
              style="border:1px solid #d3d3d3; width: 330px; height: 480px; float:left; background-color: white; margin-left: 10px;">
@@ -375,6 +402,8 @@
 
 
 
+
+
     //* -------------------------------------------------
 
     //* --------------- PopDensity for each country ---------------
@@ -480,58 +509,107 @@
 
         var col_range_low = "#85006e" ;
         var col_range_high = "#00ef3e";
+        var legendUnit = "";
 
         switch (selectedDataSet) {
             case "ForestPercent":
-                col_range_low = "#85006e" ;
-                col_range_high = "#00ef3e";
+                col_range_low = "#ffe4d8" ;
+                col_range_high = "#004902";
                 colorTrades = "#b20e01";
+                legendUnit = "%";
                 break;
             case "LifeExpect":
-                col_range_low = "#a5bbf4";
-                col_range_high = "#0b0c62";
+                col_range_low = "#dce9ff";
+                col_range_high = "#0a0a43";
                 colorTrades = "#b20e01";
+                legendUnit = " Years";
                 break;
             case "PopDensity":
                 col_range_low = "#f7c809";
                 col_range_high = "#b20e01";
                 colorTrades = "#012474";
+                legendUnit = " People/km²";
                 break;
             case "Poverty":
-                col_range_low = "#cee2fa";
-                col_range_high = "#8c9fd6";
+                col_range_low = "#cccaff";
+                col_range_high = "#290570";
                 colorTrades = "#b20e01";
+                legendUnit = "%";
                 break;
             case "Unemployment":
-                col_range_low = "#ffadb9";
-                col_range_high = "#792235";
+                col_range_low = "#ffd4cb";
+                col_range_high = "#730711";
                 colorTrades = "#031164";
+                legendUnit = "%";
                 break;
             case "Agricultural":
                 col_range_low = "#e5ed93";
                 col_range_high = "#085306";
                 colorTrades = "#b20e01";
+                legendUnit = "%";
                 break;
             case "ThreatenedSpecies":
-                col_range_low = "#fffd00";
-                col_range_high = "#bf1600";
+                col_range_low = "#fff201";
+                col_range_high = "#a10600";
                 colorTrades = "#031164";
+                legendUnit = "%";
                 break;
             default:
                 break;
         }
 
-        var range_low = d3.min(dataSet, function (d) {
-                return d.value
-            }),
-            range_high = d3.max(dataSet, function (d) {
-                return d.value
-            });
 
-        var color = d3.scaleLinear()
-            .range([col_range_low, col_range_high])
-            .domain([range_low, range_high])
-            .interpolate(d3.interpolateLab);
+        tempDataset=[];
+        dataSet.forEach(function (value) {
+
+            if(value.value!=null && value.value != 0)
+            {
+                //REMOVE MACAU
+                if(value.value > 1500)
+                {
+                    value.value = 0;
+                }
+
+                console.log(value.value);
+                tempDataset.push(value.value)
+            }
+        });
+        var range_low = Math.min.apply(null, tempDataset),
+            range_high = Math.max.apply(null, tempDataset);
+
+
+        document.getElementById("legendTop").innerHTML = (range_high).toFixed(1) + legendUnit;
+        document.getElementById("legendBottom").innerHTML = (range_low).toFixed(1) + legendUnit;
+
+        console.log("RANGE LOW" + range_low);
+        console.log("RANGE_HIGH" + range_high);
+        var color;
+
+        if (selectedDataSet == "PopDensity" )
+        {
+            color = d3.scaleLinear()
+                .range([col_range_low, col_range_high])
+                .domain([range_low, 200])
+                .interpolate(d3.interpolateLab);
+        }
+
+        else if (selectedDataSet == "ForestPercent" || selectedDataSet == "ThreatenedSpecies") {
+            color = d3.scaleLinear()
+                .range([col_range_low, col_range_high])
+                .domain([range_low, range_high])
+                .interpolate(d3.interpolateCubehelix);
+
+        }
+
+        else {
+            color = d3.scaleLinear()
+                .range([col_range_low, col_range_high])
+                .domain([range_low, range_high])
+                .interpolate(d3.interpolateLab);
+
+
+
+        }
 
 
         g.selectAll("path")
@@ -551,7 +629,7 @@
 
                     if (d.id === countryName && dataSet[i].value != null) {
 
-                        if(selectedCountryCode == dataSet[i].country ){
+                        if(selectedCountryCode == countryName ){
                             originalPatternStyle = color(dataSet[i].value);
                         }
 
@@ -559,8 +637,8 @@
                         break;
                     }
                     //if country cannot be found (= data not available), make grey!
-                    else if (d.id === dataSet[i].country && dataSet[i].value == null){
-                        if(selectedCountryCode == dataSet[i].country ){
+                    else if (d.id === countryName && dataSet[i].value == null){
+                        if(selectedCountryCode == countryName ){
                             originalPatternStyle = "#cccccc";
                         }
                         colorN = "#cccccc";
@@ -639,7 +717,11 @@
 
         document.getElementById(selectedDataSet).style.borderBottom = null; // set former selection back to default
         document.getElementById(selection).style.borderBottom = "1px solid"; // set new selection to selected style
+
+
         selectedDataSet = selection;
+
+        document.getElementById("colourScale").src = "/img/"+selectedDataSet+".png";
 
         //empty dataset to store new Data in it.
         dataSet = [];
